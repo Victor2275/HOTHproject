@@ -1,54 +1,46 @@
+import React from 'react';
 
-import { useState } from 'react';
+export default function StudentView({ tasks, points }) {
+  // Grab the latest task added by the teacher
+  const task = tasks[tasks.length - 1];
 
-export default function StudentView({ tasks, points, setPoints }) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [showMoodWheel, setShowMoodWheel] = useState(false);
-
-  // Grab the first task for this demo
-  const task = tasks[0];
-
-  const handleCompleteStep = () => {
-    if (currentStep < task.steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      setShowMoodWheel(true);
-      setPoints(points + 10); // Reward the child for finishing!
-    }
-  };
-
-  const handleMoodSelect = (mood) => {
-    alert(`You felt ${mood}! Great job finishing your task. Go check your Forest!`);
-    setShowMoodWheel(false);
-    setCurrentStep(0); // reset for next time
-  };
-
-  if (!task) return <p>No tasks available! Ask the teacher to add one.</p>;
+  if (!task) return (
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h2>🎒 Student Display</h2>
+      <p>Waiting for the teacher to assign a task...</p>
+    </div>
+  );
 
   return (
-    <div className="student-view" style={{ textAlign: 'center' }}>
-      <h2>🎒 Student Task</h2>
+    <div className="student-view" style={{ textAlign: 'center', padding: '20px' }}>
+      <div style={{ marginBottom: '20px', fontSize: '1.2rem', color: '#38bdf8' }}>
+        ⭐ Total Stars: {points}
+      </div>
       
-      {!showMoodWheel ? (
-        <div className="task-card">
-          <h3>Task: {task.title}</h3>
-          <div className="step-box" style={{ fontSize: '1.5rem', margin: '20px', padding: '20px', background: '#fff9c4', borderRadius: '10px' }}>
-            <strong>Step {currentStep + 1}:</strong> {task.steps[currentStep]}
-          </div>
-          <button onClick={handleCompleteStep} style={{ fontSize: '1.2rem', padding: '10px 20px' }}>
-            I did it! ✅
-          </button>
+      <div className="task-card" style={{ border: '2px solid #38bdf8', borderRadius: '15px', padding: '20px' }}>
+        <h2 style={{ color: '#fff' }}>Current Lesson: {task.title}</h2>
+        <div className="steps-list" style={{ textAlign: 'left', display: 'inline-block', marginTop: '20px' }}>
+          {task.steps.map((step, index) => (
+            <div 
+              key={index} 
+              className="step-box" 
+              style={{ 
+                fontSize: '1.4rem', 
+                margin: '10px 0', 
+                padding: '15px', 
+                background: '#1e293b', 
+                borderRadius: '8px',
+                borderLeft: '5px solid #38bdf8'
+              }}
+            >
+              <strong>Step {index + 1}:</strong> {step}
+            </div>
+          ))}
         </div>
-      ) : (
-        <div className="mood-wheel">
-          <h3>How did this task make you feel?</h3>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
-            <button onClick={() => handleMoodSelect('Happy')} style={{ fontSize: '3rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>😀</button>
-            <button onClick={() => handleMoodSelect('Okay')} style={{ fontSize: '3rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>😐</button>
-            <button onClick={() => handleMoodSelect('Frustrated')} style={{ fontSize: '3rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>😤</button>
-          </div>
-        </div>
-      )}
+      </div>
+      <p style={{ marginTop: '30px', fontStyle: 'italic', color: '#94a3b8' }}>
+        This is a View-Only screen. Please follow along with your teacher.
+      </p>
     </div>
   );
 }

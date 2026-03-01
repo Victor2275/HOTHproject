@@ -1,133 +1,93 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react'; // Import QR library
 import TeacherView from './components/TeacherView';
 import StudentView from './components/StudentView';
 import RewardView from './components/RewardView';
 import EmotionView from './components/EmotionView';
 import './App.css';
 
-// 1. Create a simple Login Component right inside App.jsx
-function Login({ setRole }) {
+// New Component: Initial Session/QR Code screen
+function SessionSetup({ setRole }) {
   const navigate = useNavigate();
+  // In a real app, this URL would point to your hosted student page
+  const studentJoinUrl = `${window.location.origin}/student`;
 
-  const handleRoleSelection = (selectedRole) => {
-    setRole(selectedRole); // Lock in the role
-    // Send the user to their respective dashboard
-    if (selectedRole === 'teacher') {
-      navigate('/teacher');
-    } else {
-      navigate('/student');
-    }
+  const startSession = () => {
+    setRole('teacher');
+    navigate('/teacher');
   };
 
   return (
-    <div className="login-container" style={{ textAlign: 'center', marginTop: '100px' }}>
-      <h2>Welcome to Learning Journey 🌟</h2>
-      <p>Please select your role to continue:</p>
-      
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '30px' }}>
-        <button 
-          onClick={() => handleRoleSelection('teacher')}
-          style={{ padding: '20px', fontSize: '18px', cursor: 'pointer', borderRadius: '10px' }}
-        >
-          👩‍🏫 I am a Teacher
-        </button>
-        <button 
-          onClick={() => handleRoleSelection('student')}
-          style={{ padding: '20px', fontSize: '18px', cursor: 'pointer', borderRadius: '10px' }}
-        >
-          🎒 I am a Student
-        </button>
+    <div className="setup-container" style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h2>🏫 Start New Learning Session</h2>
+      <div style={{ background: 'white', padding: '20px', display: 'inline-block', borderRadius: '10px' }}>
+        <QRCodeSVG value={studentJoinUrl} size={256} />
       </div>
+      <p style={{ marginTop: '20px' }}>Students: Scan to join the session!</p>
+      <button 
+        onClick={startSession}
+        style={{ padding: '15px 30px', fontSize: '1.2rem', marginTop: '30px' }}
+      >
+        Enter Teacher Dashboard →
+      </button>
     </div>
   );
 }
 
-
 export default function App() {
-  // 2. Start with 'null' so the app knows the user hasn't chosen yet
-  const [role, setRole] = useState(null); 
+  const [role, setRole] = useState(null); // Starts null, set to 'teacher' via SessionSetup
   const [points, setPoints] = useState(20);
   const [tasks, setTasks] = useState([
     { id: 1, title: "Basic Math", steps: ["Read the numbers", "Add them together", "Write the answer"] }
   ]);
-  
-  // 🌟 ADDED: The forest state now lives here so it never gets deleted!
   const [forest, setForest] = useState([]);
+  const [emotions, setEmotions] = useState([]);
 
   return (
     <Router>
       <div className="app-container">
-        
-        {/* 3. Hide the entire header & navigation if the user hasn't logged in */}
-        {role && (
+        {role === 'teacher' && (
           <header>
-            <h1>🌟 Learning Journey</h1>
+            <h1>🌟 Learning Journey (Teacher)</h1>
             <nav>
-              {/* Only show Teacher Mode button to teachers */}
-              {role === 'teacher' && (
-                <Link to="/teacher"><button>1. Teacher Mode</button></Link>
-              )}
-              <Link to="/student"><button>2. Student Mode</button></Link>
-              <Link to="/reward"><button>3. My Forest (Rewards)</button></Link>
-              <Link to="/emotion"><button>4. Emotion Log</button></Link>
+              <Link to="/teacher"><button>Dashboard</button></Link>
+              <Link to="/reward"><button>Forest View</button></Link>
+              <Link to="/emotion"><button>Emotion Logs</button></Link>
             </nav>
-            <div className="points-display">⭐ Stars: {points}</div>
+            <div className="points-display">⭐ Class Stars: {points}</div>
           </header>
         )}
 
         <main>
           <Routes>
-            {/* The Login Page Route */}
-            <Route 
-              path="/login" 
+            {/* Start page is now Session Setup */}
+            <Route path="/" element={<SessionSetup setRole={setRole} />} />
+            
+            <Route
+              path="/teacher"
               element={
-                !role 
-                  ? <Login setRole={setRole} /> 
-                  : <Navigate to={role === 'teacher' ? '/teacher' : '/student'} replace />
-              } 
+                role === 'teacher'
+                  ? <TeacherView tasks={tasks} setTasks={setTasks} />
+                  : <Navigate to="/" replace />
+              }
+            />
+            
+            {/* Student route is always accessible but view-only */}
+            <Route
+              path="/student"
+              element={<StudentView tasks={tasks} points={points} />}
+            />
+            
+            <Route
+              path="/reward"
+              element={<RewardView points={points} setPoints={setPoints} forest={forest} setForest={setForest} />}
             />
 
-            {/* PROTECTED ROUTE: Teacher View */}
-            <Route 
-              path="/teacher" 
-              element={
-                role === 'teacher' 
-                  ? <TeacherView tasks={tasks} setTasks={setTasks} /> 
-                  : <Navigate to={role ? "/student" : "/login"} replace /> // Bounce back to student or login
-              } 
+            <Route
+              path="/emotion"
+              element={<EmotionView emotions={emotions} setEmotions={setEmotions} />}
             />
-            
-            {/* PROTECTED ROUTES: Student Views (Require ANY role to view) */}
-            <Route 
-              path="/student" 
-              element={
-                role 
-                  ? <StudentView tasks={tasks} points={points} setPoints={setPoints} /> 
-                  : <Navigate to="/login" replace />
-              } 
-            />
-            
-            {/* 🌟 ADDED: Passing forest and setForest into the RewardView Route */}
-            <Route 
-              path="/reward" 
-              element={
-                role 
-                  ? <RewardView points={points} setPoints={setPoints} forest={forest} setForest={setForest} /> 
-                  : <Navigate to="/login" replace />
-              } 
-            />
-            <Route 
-              path="/emotion" 
-              element={
-                role 
-                  ? <EmotionView /> 
-                  : <Navigate to="/login" replace />
-              } 
-            />
-            
-            {/* 4. Default Route: Redirect to Login automatically */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
           </Routes>
         </main>
       </div>
