@@ -51,6 +51,9 @@ export default function App() {
   const [tasks, setTasks] = useState([
     { id: 1, title: "Basic Math", steps: ["Read the numbers", "Add them together", "Write the answer"] }
   ]);
+  
+  // 🌟 ADDED: The forest state now lives here so it never gets deleted!
+  const [forest, setForest] = useState([]);
 
   return (
     <Router>
@@ -104,11 +107,13 @@ export default function App() {
                   : <Navigate to="/login" replace />
               } 
             />
+            
+            {/* 🌟 ADDED: Passing forest and setForest into the RewardView Route */}
             <Route 
               path="/reward" 
               element={
                 role 
-                  ? <RewardView points={points} setPoints={setPoints} /> 
+                  ? <RewardView points={points} setPoints={setPoints} forest={forest} setForest={setForest} /> 
                   : <Navigate to="/login" replace />
               } 
             />
