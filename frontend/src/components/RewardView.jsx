@@ -1,44 +1,39 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+
+// 1. IMPORT YOUR NEW ANIMATED COMPONENTS HERE
+import { SeedIcon } from './SeedIcon';
+import { SaplingIcon } from './SaplingIcon';
+import { TreeIcon } from './TreeIcon';
 
 // ==========================================
 // 🎨 UI INTEGRATION AREA: IMPORT ASSETS HERE
 // ==========================================
-// When you have your custom graphics, uncomment the lines below
-// and change the file paths to match your exported images.
-
+// When you have a custom background, uncomment the line below
+// and change the file path to match your exported image.
 // import forestBackground from '../assets/forest-backdrop.jpg';
-// import pineLvl1 from '../assets/pine-level1.svg';
-// import pineLvl2 from '../assets/pine-level2.svg';
-// import pineLvl3 from '../assets/pine-level3.svg';
 
 // ==========================================
 // 🌲 TREE CONFIGURATION DICTIONARY
 // ==========================================
-// This dictionary controls the graphics and names for each tree type and level.
-// You can easily add more tree types (like 'oak' or 'fruit') here!
+// This dictionary controls the graphics and names for the tree type and level.
 const TREE_TYPES = {
   pine: {
-    name: "Pine Tree",
+    name: "Animated Pine",
     cost: 5,
     levels: {
-      1: { size: '60px', graphic: '🌲' },    // REPLACE '🌲' with: pineLvl1
-      2: { size: '100px', graphic: '🌳' },   // REPLACE '🌳' with: pineLvl2
-      3: { size: '150px', graphic: '🏕️✨' }, // REPLACE '🏕️✨' with: pineLvl3
-    }
-  },
-  oak: {
-    name: "Oak Tree",
-    cost: 10,
-    levels: {
-      1: { size: '60px', graphic: '🌱' },
-      2: { size: '100px', graphic: '🌿' },
-      3: { size: '150px', graphic: '🌳✨' },
+      // Using your Framer Motion icons here!
+      1: { size: '60px', graphic: <SeedIcon size={60} /> },
+      2: { size: '100px', graphic: <SaplingIcon size={100} /> },
+      3: { size: '150px', graphic: <TreeIcon size={150} /> },
     }
   }
 };
 
+
+
+
 export default function RewardView({ points, setPoints }) {
-  const [forest, setForest] = useState([]);
+  const [forest, setForest] = useState([]); //
 
   // 1. Function to buy and plant a Level 1 tree
   const plantTree = (type) => {
@@ -48,7 +43,7 @@ export default function RewardView({ points, setPoints }) {
       
       const newTree = {
         id: Date.now(), // Unique ID for React
-        type: type,     // 'pine' or 'oak'
+        type: type,     // 'pine'
         level: 1        // All new trees start at level 1
       };
       
@@ -88,7 +83,6 @@ export default function RewardView({ points, setPoints }) {
       // Add the new upgraded tree to the forest
       setForest([...newForest, upgradedTree]);
       
-      // Optional: You could play a sound effect here!
     } else {
       // No match found
       alert(`To upgrade this ${TREE_TYPES[clickedTree.type].name}, you need another Level ${clickedTree.level} tree of the same kind to combine it with!`);
@@ -108,16 +102,11 @@ export default function RewardView({ points, setPoints }) {
         <button onClick={() => plantTree('pine')} disabled={points < TREE_TYPES.pine.cost}>
           Buy Pine (5 ⭐)
         </button>
-        <button onClick={() => plantTree('oak')} disabled={points < TREE_TYPES.oak.cost}>
-          Buy Oak (10 ⭐)
-        </button>
       </div>
 
       {/* ========================================== */}
       {/* 🖼️ UI INTEGRATION AREA: BACKDROP           */}
       {/* ========================================== */}
-      {/* To use your custom background, replace the 'backgroundColor'
-          with: backgroundImage: `url(${forestBackground})`, backgroundSize: 'cover' */}
       
       <div className="forest-grid" style={{
         display: 'flex',
@@ -126,7 +115,7 @@ export default function RewardView({ points, setPoints }) {
         gap: '20px',
         marginTop: '30px',
         minHeight: '400px',
-        backgroundColor: '#a8e6cf', // <--- REPLACE THIS WITH YOUR BACKGROUND IMAGE
+        backgroundColor: '#a8e6cf',
         padding: '30px',
         borderRadius: '20px',
         border: '4px solid #568a62'
@@ -147,24 +136,22 @@ export default function RewardView({ points, setPoints }) {
                 style={{
                   cursor: 'pointer',
                   transition: 'transform 0.2s',
-                  animation: 'pop-in 0.4s ease-out'
+                  animation: 'pop-in 0.4s ease-out',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center'
                 }}
                 title="Click to combine!"
                 onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
                 onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >
-                {/* ========================================== */}
-                {/* 🎨 UI INTEGRATION AREA: TREE GRAPHICS      */}
-                {/* ========================================== */}
-                {/* If you are using real images instead of emojis, replace the <span> below with:
-                    <img src={treeData.graphic} alt={tree.type} style={{ height: treeData.size }} />
-                */}
-                <span style={{ fontSize: treeData.size }}>
+                {/* 🎨 THIS IS WHERE THE GRAPHIC RENDERS */}
+                <span style={{ fontSize: treeData.size, display: 'inline-block' }}>
                   {treeData.graphic}
                 </span>
                 
                 {/* Small indicator so kids know what level it is */}
-                <div style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.7)', borderRadius: '10px', marginTop: '5px' }}>
+                <div style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.7)', borderRadius: '10px', padding: '2px 8px', marginTop: '5px' }}>
                   Lvl {tree.level}
                 </div>
               </div>
