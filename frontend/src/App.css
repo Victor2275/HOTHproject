@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
+
 :root {
-  background-color: #0f172a;
+  background-color: #78935c;
   color: #f8fafc;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Lexend', sans-serif;
 }
 
 .container {
@@ -31,7 +33,7 @@ button {
   padding: 10px 20px;
   border-radius: 8px;
   border: none;
-  background: #38bdf8;
+  background: #b3cba7;
   font-weight: bold;
   cursor: pointer;
 }
