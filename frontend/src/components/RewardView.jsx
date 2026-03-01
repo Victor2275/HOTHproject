@@ -1,5 +1,27 @@
 import { useState } from 'react';
 
+
+
+// 1. IMPORT YOUR NEW ANIMATED COMPONENTS HERE
+import { SeedIcon } from './SeedIcon';
+import { SaplingIcon } from './SaplingIcon';
+import { TreeIcon } from './TreeIcon';
+
+// 2. PLUG THEM INTO YOUR DICTIONARY
+const TREE_TYPES = {
+  pine: {
+    name: "Animated Tree",
+    cost: 5,
+    levels: {
+      // Pass 'size' to match your grid styling!
+      1: { size: '60px', graphic: <SeedIcon size={60} /> },
+      2: { size: '100px', graphic: <SaplingIcon size={100} /> },
+      3: { size: '150px', graphic: <TreeIcon size={150} /> },
+    }
+  },
+  // ... rest of your code
+
+
 // ==========================================
 // 🎨 UI INTEGRATION AREA: IMPORT ASSETS HERE
 // ==========================================
