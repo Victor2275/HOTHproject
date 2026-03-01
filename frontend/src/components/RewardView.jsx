@@ -15,7 +15,7 @@ import { TreeIcon } from './TreeIcon';
 // ==========================================
 // 🌲 TREE CONFIGURATION DICTIONARY
 // ==========================================
-// This dictionary controls the graphics and names for each tree type and level.
+// This dictionary controls the graphics and names for the tree type and level.
 const TREE_TYPES = {
   pine: {
     name: "Animated Pine",
@@ -26,21 +26,14 @@ const TREE_TYPES = {
       2: { size: '100px', graphic: <SaplingIcon size={100} /> },
       3: { size: '150px', graphic: <TreeIcon size={150} /> },
     }
-  },
-  oak: {
-    name: "Oak Tree",
-    cost: 10,
-    levels: {
-      // Keeping emojis here just so you have a 2nd option to play with
-      1: { size: '60px', graphic: '🌱' },
-      2: { size: '100px', graphic: '🌿' },
-      3: { size: '150px', graphic: '🌳✨' },
-    }
   }
 };
 
+
+
+
 export default function RewardView({ points, setPoints }) {
-  const [forest, setForest] = useState([]);
+  const [forest, setForest] = useState([]); //
 
   // 1. Function to buy and plant a Level 1 tree
   const plantTree = (type) => {
@@ -50,7 +43,7 @@ export default function RewardView({ points, setPoints }) {
       
       const newTree = {
         id: Date.now(), // Unique ID for React
-        type: type,     // 'pine' or 'oak'
+        type: type,     // 'pine'
         level: 1        // All new trees start at level 1
       };
       
@@ -108,9 +101,6 @@ export default function RewardView({ points, setPoints }) {
       <div className="store-panel" style={{ margin: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
         <button onClick={() => plantTree('pine')} disabled={points < TREE_TYPES.pine.cost}>
           Buy Pine (5 ⭐)
-        </button>
-        <button onClick={() => plantTree('oak')} disabled={points < TREE_TYPES.oak.cost}>
-          Buy Oak (10 ⭐)
         </button>
       </div>
 
