@@ -4,6 +4,7 @@ export default function TeacherView({ tasks, setTasks }) {
   const [taskInput, setTaskInput] = useState('');
   const [stepsInput, setStepsInput] = useState('');
   const [timeLimitMinutes, setTimeLimitMinutes] = useState(5);
+  const [showSteps, setShowSteps] = useState(false);
 
   const handleAddTask = () => {
     if (!taskInput) return;
@@ -37,6 +38,7 @@ export default function TeacherView({ tasks, setTasks }) {
     setTasks([...tasks, newTask]);
     setTaskInput('');
     setStepsInput('');
+    setShowSteps(false);
   };
 
   return (
@@ -53,15 +55,19 @@ export default function TeacherView({ tasks, setTasks }) {
           style={{ width: '100%', maxWidth: '400px', marginTop: '10px' }}
         />
           <br />
-          <label style={{ marginTop: '8px', display: 'block' }}>Optional breakdown steps (one per line):</label>
-          <textarea
-            value={stepsInput}
-            onChange={(e) => setStepsInput(e.target.value)}
-            placeholder="Enter each step on a new line."
-            rows="3"
-            style={{ width: '100%', maxWidth: '400px', marginTop: '4px' }}
-          />
-          <br />
+          {showSteps && (
+            <>
+              <label style={{ marginTop: '8px', display: 'block' }}>Optional breakdown steps (one per line):</label>
+              <textarea
+                value={stepsInput}
+                onChange={(e) => setStepsInput(e.target.value)}
+                placeholder="Enter each step on a new line."
+                rows="3"
+                style={{ width: '100%', maxWidth: '400px', marginTop: '4px' }}
+              />
+              <br />
+            </>
+          )}
           <label style={{ marginTop: '8px', display: 'block' }}>Time limit (minutes):</label>
           <input
             type="number"
@@ -71,8 +77,14 @@ export default function TeacherView({ tasks, setTasks }) {
             style={{ width: '100px', marginTop: '6px' }}
           />
         <br />
-        <button onClick={handleAddTask} style={{ marginTop: '10px' }}>
-          Add Task
+        <button onClick={() => {
+          if (!showSteps) {
+            setShowSteps(true);
+          } else {
+            handleAddTask();
+          }
+        }} style={{ marginTop: '10px' }}>
+          {showSteps ? 'Confirm Task' : 'Add Task'}
         </button>
       </div>
 
