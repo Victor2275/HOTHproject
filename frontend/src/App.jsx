@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
-import { QRCodeSVG } from 'qrcode.react'; // Import QR library
+import { QRCodeSVG } from 'qrcode.react';
 import TeacherView from './components/TeacherView';
 import StudentView from './components/StudentView';
 import RewardView from './components/RewardView';
 import EmotionView from './components/EmotionView';
 import './App.css';
 
-// Initial Session/QR Code screen
 function SessionSetup({ setRole }) {
   const navigate = useNavigate();
-  // In a real app, this URL would point to your hosted student page
   const studentJoinUrl = `${window.location.origin}/student`;
 
   const startSession = () => {
@@ -47,8 +45,6 @@ export default function App() {
   return (
     <Router>
       <div className="app-container">
-        
-        {/* TEACHER NAVIGATION */}
         {role === 'teacher' && (
           <header>
             <h1>🌟 Learning Journey (Teacher)</h1>
@@ -61,13 +57,13 @@ export default function App() {
           </header>
         )}
 
-        {/* STUDENT NAVIGATION (Shows up if they bypass the teacher screen) */}
         {role !== 'teacher' && window.location.pathname !== '/' && (
           <header>
             <h1>🎒 My Learning</h1>
             <nav>
               <Link to="/student"><button>My Tasks</button></Link>
               <Link to="/reward"><button>My Forest</button></Link>
+              <Link to="/emotion"><button>My Mood</button></Link>
             </nav>
             <div className="points-display">⭐ My Stars: {points}</div>
           </header>
@@ -75,7 +71,6 @@ export default function App() {
 
         <main>
           <Routes>
-            {/* Start page is now Session Setup */}
             <Route path="/" element={<SessionSetup setRole={setRole} />} />
             
             <Route
@@ -87,7 +82,6 @@ export default function App() {
               }
             />
             
-            {/* ADDED: setPoints and setEmotions so the student can actually use them! */}
             <Route
               path="/student"
               element={
@@ -107,7 +101,8 @@ export default function App() {
 
             <Route
               path="/emotion"
-              element={<EmotionView emotions={emotions} setEmotions={setEmotions} />}
+              // Pass tasks here so the student can select them!
+              element={<EmotionView emotions={emotions} setEmotions={setEmotions} tasks={tasks} />}
             />
           </Routes>
         </main>
