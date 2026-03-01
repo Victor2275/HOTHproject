@@ -1,163 +1,160 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { motion } from 'framer-motion';
 
-// 1. IMPORT YOUR NEW ANIMATED COMPONENTS HERE
+// IMPORT YOUR ANIMATED COMPONENTS
 import { SeedIcon } from './SeedIcon';
 import { SaplingIcon } from './SaplingIcon';
 import { TreeIcon } from './TreeIcon';
 
-// ==========================================
-// 🎨 UI INTEGRATION AREA: IMPORT ASSETS HERE
-// ==========================================
-// When you have a custom background, uncomment the line below
-// and change the file path to match your exported image.
-// import forestBackground from '../assets/forest-backdrop.jpg';
-
-// ==========================================
-// 🌲 TREE CONFIGURATION DICTIONARY
-// ==========================================
-// This dictionary controls the graphics and names for the tree type and level.
 const TREE_TYPES = {
   pine: {
     name: "Animated Pine",
     cost: 5,
     levels: {
-      // Using your Framer Motion icons here!
-      1: { size: '60px', graphic: <SeedIcon size={60} /> },
-      2: { size: '100px', graphic: <SaplingIcon size={100} /> },
-      3: { size: '150px', graphic: <TreeIcon size={150} /> },
+      1: { size: '40px', graphic: <SeedIcon size={40} />, offset: -20 },
+      2: { size: '70px', graphic: <SaplingIcon size={70} />, offset: -35 },
+      3: { size: '100px', graphic: <TreeIcon size={100} />, offset: -50 },
     }
   }
 };
 
+// 📍 12 SAFE SLOTS
+// Adjusted so that even a 100px tree (offset -50) stays within the 454x454 bounds.
+// Safe Range: X(50 to 404), Y(50 to 404)
+const TREE_POSITIONS = [
+  { left: 70, top: 340 },  { left: 150, top: 320 }, { left: 230, top: 340 }, { left: 310, top: 320 },
+  { left: 380, top: 350 }, { left: 110, top: 260 }, { left: 200, top: 240 }, { left: 290, top: 260 },
+  { left: 60, top: 390 },  { left: 160, top: 400 }, { left: 260, top: 390 }, { left: 360, top: 400 }
+];
 
-
-
-// Notice we added forest and setForest into the props here!
 export default function RewardView({ points, setPoints, forest, setForest }) {
-  
-  // 1. Function to buy and plant a Level 1 tree
+
   const plantTree = (type) => {
     const cost = TREE_TYPES[type].cost;
-    if (points >= cost) {
-      setPoints(points - cost);
-      
-      const newTree = {
-        id: Date.now(), // Unique ID for React
-        type: type,     // 'pine'
-        level: 1        // All new trees start at level 1
-      };
-      
-      setForest([...forest, newTree]);
-    } else {
-      alert("You need more stars! 🌟");
-    }
+    if (points < cost) return alert("You need more stars! 🌟");
+
+    const occupiedSlots = forest.map(t => t.slotIndex);
+    const nextSlotIndex = TREE_POSITIONS.findIndex((_, index) => !occupiedSlots.includes(index));
+
+    if (nextSlotIndex === -1) return alert("Forest full!");
+
+    setPoints(points - cost);
+    setForest([...forest, { id: Date.now(), type, level: 1, slotIndex: nextSlotIndex }]);
   };
 
-  // 2. Function to COMBINE/MERGE trees
   const handleTreeClick = (clickedTree) => {
-    // If the tree is already max level (Level 3), do nothing
-    if (clickedTree.level >= 3) {
-      alert("This tree is fully grown! It can't get any bigger.");
-      return;
-    }
-
-    // Look for ANOTHER tree in the forest of the exact same TYPE and LEVEL
     const matchIndex = forest.findIndex(
       (t) => t.id !== clickedTree.id && t.type === clickedTree.type && t.level === clickedTree.level
     );
 
-    if (matchIndex !== -1) {
-      // WE FOUND A MATCH! Let's combine them.
+    if (clickedTree.level < 3 && matchIndex !== -1) {
       const matchedTree = forest[matchIndex];
-
-      // Remove both old trees from the array
       const newForest = forest.filter(t => t.id !== clickedTree.id && t.id !== matchedTree.id);
-      
-      // Create a new upgraded tree (Level + 1)
-      const upgradedTree = {
-        id: Date.now(),
-        type: clickedTree.type,
-        level: clickedTree.level + 1
-      };
-
-      // Add the new upgraded tree to the forest
-      setForest([...newForest, upgradedTree]);
-      
-    } else {
-      // No match found
-      alert(`To upgrade this ${TREE_TYPES[clickedTree.type].name}, you need another Level ${clickedTree.level} tree of the same kind to combine it with!`);
+      setForest([...newForest, { id: Date.now(), type: clickedTree.type, level: clickedTree.level + 1, slotIndex: clickedTree.slotIndex }]);
     }
   };
 
   return (
     <div className="reward-view" style={{ textAlign: 'center' }}>
       <h2>🌳 Your Magical Forest 🌳</h2>
-      <p>Stars available: <strong>{points} ⭐</strong></p>
-      <p style={{ color: '#555', fontSize: '0.9rem' }}>
-        <em>Hint: Buy 2 of the same trees and click one to combine them into a bigger tree!</em>
-      </p>
+      <p>Stars: <strong>{points} ⭐</strong></p>
       
-      {/* --- STORE PANEL --- */}
-      <div className="store-panel" style={{ margin: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
-        <button onClick={() => plantTree('pine')} disabled={points < TREE_TYPES.pine.cost}>
-          Buy Pine (5 ⭐)
-        </button>
-      </div>
+      <button onClick={() => plantTree('pine')} style={{ marginBottom: '10px' }}>Buy Pine (5 ⭐)</button>
 
-      {/* ========================================== */}
-      {/* 🖼️ UI INTEGRATION AREA: BACKDROP           */}
-      {/* ========================================== */}
-      
-      <div className="forest-grid" style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'flex-end', // Aligns trees to the "ground"
-        gap: '20px',
-        marginTop: '30px',
-        minHeight: '400px',
-        backgroundColor: '#a8e6cf',
-        padding: '30px',
-        borderRadius: '20px',
-        border: '4px solid #568a62'
-      }}>
-        
-        {forest.length === 0 ? (
-          <p style={{ width: '100%', color: '#333', fontSize: '1.2rem' }}>
-            It's empty here! Complete tasks to earn stars and plant trees.
-          </p>
-        ) : (
-          forest.map((tree) => {
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        {/* The 454x454 Fixed Box */}
+        <div style={{ width: '454px', height: '454px', position: 'relative', overflow: 'hidden', borderRadius: '20px', boxShadow: '0 8px 16px rgba(0,0,0,0.2)' }}>
+          
+          {/* --- START OF YOUR GRASS CODE --- */}
+          <div style={{width: '100%', height: '100%', position: 'relative', overflow: 'hidden'}}>
+            <div style={{width: 453.50, height: 453.50, left: 0, top: 0, position: 'absolute', background: '#ECF9FC'}} />
+            <div style={{width: 322.92, height: 3.46, left: 130.58, top: 207.32, position: 'absolute', background: 'white'}} />
+            <div style={{width: 453.50, height: 453.50, left: 0, top: 0, position: 'absolute', background: 'black', opacity: 0.05}} />
+            <div style={{width: 454, height: 120.76, left: -0.13, top: 227.55, position: 'absolute', background: '#D2EDF3'}} />
+            <div style={{width: 453.50, height: 453.50, left: 0, top: 0, position: 'absolute', background: 'black', opacity: 0.05}} />
+            <div style={{width: 312.23, height: 83.05, left: -0.13, top: 267.41, position: 'absolute', background: '#BEDFE5'}} />
+            <div style={{width: 453.50, height: 453.50, left: 0, top: 0, position: 'absolute', background: 'black', opacity: 0.05}} />
+            <div style={{width: 454, height: 138.16, left: -0.13, top: 315.65, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 453.50, height: 453.50, left: 0, top: 0, position: 'absolute', background: 'black', opacity: 0.05}} />
+            <div style={{width: 454, height: 138.18, left: -0.13, top: 315.63, position: 'absolute', background: '#4EBD38'}} />
+            <div style={{width: 453.50, height: 453.50, left: 0, top: 0, position: 'absolute', background: 'black', opacity: 0.05}} />
+            <div style={{width: 454, height: 113.68, left: -0.13, top: 340.13, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 453.50, height: 453.50, left: 0, top: 0, position: 'absolute', background: 'black', opacity: 0.05}} />
+            <div style={{width: 454, height: 68.11, left: -0.13, top: 385.69, position: 'absolute', background: '#4EBD38'}} />
+            <div style={{width: 453.50, height: 453.50, left: 0, top: 0, position: 'absolute', background: 'black', opacity: 0.05}} />
+            <div style={{width: 49.94, height: 223.48, left: 51.71, top: 185.73, position: 'absolute', background: '#2E943E'}} />
+            <div style={{width: 453.50, height: 453.50, left: 0, top: 0, position: 'absolute', background: 'black', opacity: 0.05}} />
+            <div style={{width: 38.23, height: 171.06, left: 99.35, top: 201.25, position: 'absolute', background: '#39B03E'}} />
+            <div style={{width: 453.50, height: 453.50, left: 0, top: 0, position: 'absolute', background: 'black', opacity: 0.05}} />
+            <div style={{width: 25.18, height: 112.67, left: 5.34, top: 229.11, position: 'absolute', background: '#39B03E'}} />
+            <div style={{width: 453.50, height: 453.50, left: 0, top: 0, position: 'absolute', background: 'black', opacity: 0.05}} />
+            <div style={{width: 16.59, height: 74.21, left: 421.71, top: 246.47, position: 'absolute', background: '#4EBD38'}} />
+            <div style={{width: 453.50, height: 453.50, left: 0, top: 0, position: 'absolute', background: 'black', opacity: 0.05}} />
+            <div style={{width: 269.65, height: 7.23, left: 184.22, top: 359.13, position: 'absolute', background: '#96D76C'}} />
+            <div style={{width: 12.54, height: 56.12, left: 383.89, top: 262.07, position: 'absolute', background: '#4EBD38'}} />
+            <div style={{width: 31.54, height: 141.13, left: 390.54, top: 246.47, position: 'absolute', background: '#39B03E'}} />
+            <div style={{width: 59.92, height: 268.13, left: 334.96, top: 170.56, position: 'absolute', background: '#287D38'}} />
+            <div style={{width: 308.26, height: 16.13, left: -0.13, top: 414.61, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 5.06, height: 22.66, left: 200.08, top: 294.14, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 6.21, height: 27.79, left: 203.70, top: 288.94, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 6.52, height: 29.18, left: 213.15, top: 287.55, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 5.06, height: 22.66, left: 218.16, top: 294.56, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 5.06, height: 22.66, left: 226.99, top: 294.25, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 6.21, height: 27.79, left: 241.26, top: 289.15, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 6.52, height: 29.18, left: 250.71, top: 287.75, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 5.06, height: 22.66, left: 264.55, top: 294.46, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 5.07, height: 22.66, left: 230.53, top: 294, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 5.06, height: 22.66, left: 239.36, top: 293.69, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 4.41, height: 19.73, left: 235.26, top: 296.64, position: 'absolute', background: '#7BCD57'}} />
+            <div style={{width: 40.90, height: 182.99, left: 12.22, top: 187.29, position: 'absolute', background: '#2E943E'}} />
+            <div style={{width: 32.16, height: 258.21, left: 421.71, top: 195.60, position: 'absolute', background: '#287D38'}} />
+            <div style={{width: 10.42, height: 46.63, left: 166.06, top: 272.74, position: 'absolute', background: '#4EBD38'}} />
+            <div style={{width: 12.22, height: 54.66, left: 154.10, top: 267.83, position: 'absolute', background: '#4EBD38'}} />
+            <div style={{width: 12.22, height: 54.66, left: 143.72, top: 264, position: 'absolute', background: '#4EBD38'}} />
+            <div style={{width: 10.42, height: 46.63, left: 134.49, top: 273.16, position: 'absolute', background: '#4EBD38'}} />
+            <div style={{width: 415.51, height: 10.01, left: -0.13, top: 144.17, position: 'absolute', background: 'white'}} />
+            <div style={{width: 323.29, height: 7.79, left: 130.58, top: 88.55, position: 'absolute', background: 'white'}} />
+            <div style={{width: 412.29, height: 9.94, left: 41.58, top: 51.97, position: 'absolute', background: 'white'}} />
+            <div style={{width: 312.32, height: 7.53, left: -0.13, top: 172.40, position: 'absolute', background: 'white'}} />
+            <div style={{width: 122.16, height: 23.22, left: 43.80, top: 136.66, position: 'absolute', background: 'white'}} />
+            <div style={{width: 106.29, height: 20.21, left: 148.51, top: 45.52, position: 'absolute', background: 'white'}} />
+            <div style={{width: 85.74, height: 17.94, left: 269.12, top: 83.26, position: 'absolute', background: 'white'}} />
+            <div style={{width: 85.74, height: 17.94, left: 120.60, top: 167.17, position: 'absolute', background: 'white'}} />
+            <div style={{width: 323.29, height: 3.46, left: -0.13, top: 27.86, position: 'absolute', background: 'white'}} />
+          </div>
+          {/* --- END OF YOUR GRASS CODE --- */}
+
+          {forest.map((tree) => {
             const treeData = TREE_TYPES[tree.type].levels[tree.level];
+            const position = TREE_POSITIONS[tree.slotIndex];
             
             return (
-              <div
+              <motion.div
                 key={tree.id}
                 onClick={() => handleTreeClick(tree)}
+                whileTap={{ scale: 0.8 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 style={{
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s',
-                  animation: 'pop-in 0.4s ease-out',
+                  position: 'absolute',
+                  left: position.left + treeData.offset + 'px',
+                  top: position.top + treeData.offset + 'px',
+                  cursor: tree.level >= 3 ? 'default' : 'pointer',
+                  zIndex: tree.level >= 3 ? 5 : 100,
                   display: 'flex',
                   flexDirection: 'column',
-                  alignItems: 'center'
+                  alignItems: 'center',
                 }}
-                title="Click to combine!"
-                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >
-                {/* 🎨 THIS IS WHERE THE GRAPHIC RENDERS */}
                 <span style={{ fontSize: treeData.size, display: 'inline-block' }}>
                   {treeData.graphic}
                 </span>
-                
-                {/* Small indicator so kids know what level it is */}
-                <div style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.7)', borderRadius: '10px', padding: '2px 8px', marginTop: '5px' }}>
+                <div style={{ fontSize: '0.6rem', background: 'white', borderRadius: '5px', padding: '0 4px', fontWeight: 'bold' }}>
                   Lvl {tree.level}
                 </div>
-              </div>
+              </motion.div>
             );
-          })
-        )}
+          })}
+        </div>
       </div>
     </div>
   );

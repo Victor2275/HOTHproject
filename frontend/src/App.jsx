@@ -7,7 +7,7 @@ import RewardView from './components/RewardView';
 import EmotionView from './components/EmotionView';
 import './App.css';
 
-// New Component: Initial Session/QR Code screen
+// Initial Session/QR Code screen
 function SessionSetup({ setRole }) {
   const navigate = useNavigate();
   // In a real app, this URL would point to your hosted student page
@@ -25,7 +25,7 @@ function SessionSetup({ setRole }) {
         <QRCodeSVG value={studentJoinUrl} size={256} />
       </div>
       <p style={{ marginTop: '20px' }}>Students: Scan to join the session!</p>
-      <button 
+      <button
         onClick={startSession}
         style={{ padding: '15px 30px', fontSize: '1.2rem', marginTop: '30px' }}
       >
@@ -36,8 +36,8 @@ function SessionSetup({ setRole }) {
 }
 
 export default function App() {
-  const [role, setRole] = useState(null); // Starts null, set to 'teacher' via SessionSetup
-  const [points, setPoints] = useState(20);
+  const [role, setRole] = useState(null);
+  const [points, setPoints] = useState(1000);
   const [tasks, setTasks] = useState([
     { id: 1, title: "Basic Math", steps: ["Read the numbers", "Add them together", "Write the answer"], timeLimitSeconds: 180 }
   ]);
@@ -47,6 +47,8 @@ export default function App() {
   return (
     <Router>
       <div className="app-container">
+        
+        {/* TEACHER NAVIGATION */}
         {role === 'teacher' && (
           <header>
             <h1>🌟 Learning Journey (Teacher)</h1>
@@ -56,6 +58,18 @@ export default function App() {
               <Link to="/emotion"><button>Emotion Logs</button></Link>
             </nav>
             <div className="points-display">⭐ Class Stars: {points}</div>
+          </header>
+        )}
+
+        {/* STUDENT NAVIGATION (Shows up if they bypass the teacher screen) */}
+        {role !== 'teacher' && window.location.pathname !== '/' && (
+          <header>
+            <h1>🎒 My Learning</h1>
+            <nav>
+              <Link to="/student"><button>My Tasks</button></Link>
+              <Link to="/reward"><button>My Forest</button></Link>
+            </nav>
+            <div className="points-display">⭐ My Stars: {points}</div>
           </header>
         )}
 
@@ -73,10 +87,17 @@ export default function App() {
               }
             />
             
-            {/* Student route is always accessible but view-only */}
+            {/* ADDED: setPoints and setEmotions so the student can actually use them! */}
             <Route
               path="/student"
-              element={<StudentView tasks={tasks} points={points} />}
+              element={
+                <StudentView
+                  tasks={tasks}
+                  points={points}
+                  setPoints={setPoints}
+                  setEmotions={setEmotions}
+                />
+              }
             />
             
             <Route
