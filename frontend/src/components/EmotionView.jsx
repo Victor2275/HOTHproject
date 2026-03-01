@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import '../styles/EmotionView.css';
 
-const EmotionView = () => {
-  const [emotions, setEmotions] = useState([]);
+const EmotionView = ({ emotions, setEmotions }) => {
 
   const emotionData = [
     { name: 'Happy', color: '#FFD700', angle: 0 },
@@ -46,7 +45,7 @@ const EmotionView = () => {
       {/* Color Wheel Section */}
       <div className="emotion-wheel-container">
         <svg viewBox="0 0 400 400" className="emotion-wheel">
-          {emotionData.map((emotion, index) => {
+          {emotionData.map((emotion) => {
             const radius = 150;
             const angle = (emotion.angle * Math.PI) / 180;
             const x = 200 + radius * Math.cos(angle);
@@ -72,7 +71,7 @@ const EmotionView = () => {
                   dominantBaseline="middle"
                   className="emotion-label"
                   onClick={() => handleEmotionClick(emotion)}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', pointerEvents: 'none', fontWeight: 'bold' }}
                 >
                   {emotion.name}
                 </text>
@@ -101,7 +100,7 @@ const EmotionView = () => {
               <div
                 key={entry.id}
                 className="emotion-entry"
-                style={{ borderLeftColor: entry.color }}
+                style={{ borderLeft: `5px solid ${entry.color}` }}
               >
                 <div className="entry-content">
                   <span className="emotion-name">{entry.emotion}</span>
