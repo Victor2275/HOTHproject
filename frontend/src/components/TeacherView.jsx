@@ -3,29 +3,21 @@ import { useState } from 'react';
 export default function TeacherView({ tasks, setTasks }) {
   const [taskInput, setTaskInput] = useState('');
   const [stepsInput, setStepsInput] = useState('');
-  const [correctAnswer, setCorrectAnswer] = useState('');
-  const [timeLimitMinutes, setTimeLimitMinutes] = useState(1); // Set default to 1 minute
+  const [correctAnswer, setCorrectAnswer] = useState(''); // Kept in state to prevent errors elsewhere
+  const [timeLimitMinutes, setTimeLimitMinutes] = useState(1);
   const [showSteps, setShowSteps] = useState(false);
   
-  // New AI States
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiSuggestedSteps, setAiSuggestedSteps] = useState('');
 
-  // 🤖 AI GENERATION FUNCTION
   const handleAIGenerate = async () => {
     if (!taskInput.trim()) return;
     setIsGenerating(true);
     setAiSuggestedSteps('');
     
-    const prompt = `Generate some recommended steps for solving this question: "${taskInput}" as if a 5 year old with special needs would need.`;
-    
     try {
-      // Simulating API delay
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mocked AI Response
       const mockResponse = `1. Look at the numbers together.\n2. Count on your fingers slowly.\n3. Say the answer out loud.\n4. Write the answer down carefully.`;
-      
       setAiSuggestedSteps(mockResponse);
     } catch (error) {
       console.error("AI Generation failed", error);
@@ -36,7 +28,7 @@ export default function TeacherView({ tasks, setTasks }) {
 
   const handleAcceptAI = () => {
     setStepsInput(aiSuggestedSteps);
-    setAiSuggestedSteps(''); // Clear the suggestion box
+    setAiSuggestedSteps('');
   };
 
   const handleAddTask = () => {
@@ -54,7 +46,7 @@ export default function TeacherView({ tasks, setTasks }) {
       id: Date.now(),
       title: taskInput,
       steps,
-      correctAnswer: correctAnswer.trim(),
+      correctAnswer: '', // No fixed answer required from teacher
       timeLimitSeconds: Number(timeLimitMinutes) * 60
     };
 
@@ -83,19 +75,8 @@ export default function TeacherView({ tasks, setTasks }) {
 
         {showSteps && (
           <>
-            <label style={{ marginTop: '10px', display: 'block' }}>Expected Answer (Used to grade student):</label>
-            <input
-              type="text"
-              value={correctAnswer}
-              onChange={(e) => setCorrectAnswer(e.target.value)}
-              placeholder="e.g., 8"
-              style={{ width: '100%', maxWidth: '400px', marginTop: '4px', padding: '5px' }}
-            />
-            <br />
-
             <label style={{ marginTop: '15px', display: 'block' }}>Optional breakdown steps (one per line):</label>
             
-            {/* AI GENERATOR BUTTON */}
             <button
               onClick={handleAIGenerate}
               disabled={isGenerating || !taskInput.trim()}
@@ -104,7 +85,6 @@ export default function TeacherView({ tasks, setTasks }) {
               {isGenerating ? "🤖 Thinking..." : "✨ Generate AI Steps"}
             </button>
 
-            {/* AI SUGGESTION BLOCK (BLUE FONT) */}
             {aiSuggestedSteps && (
               <div style={{ border: '2px dashed #3b82f6', padding: '10px', borderRadius: '8px', marginBottom: '10px', maxWidth: '400px' }}>
                 <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#3b82f6' }}>AI Suggestion (Edit if needed):</p>
@@ -164,7 +144,6 @@ export default function TeacherView({ tasks, setTasks }) {
         {tasks.map(task => (
           <li key={task.id} style={{ marginBottom: '8px' }}>
             {task.title} - Time: {task.timeLimitSeconds ? Math.round(task.timeLimitSeconds/60) + ' min' : '—'}
-            {task.correctAnswer && ` - Answer: ${task.correctAnswer}`}
             {task.steps && task.steps.length > 0 && (
               <ul style={{ marginTop: '4px', marginLeft: '16px' }}>
                 {task.steps.map((step, idx) => (
