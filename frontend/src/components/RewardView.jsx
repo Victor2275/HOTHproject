@@ -117,8 +117,6 @@ export default function RewardView({ points, setPoints }) {
       {/* ========================================== */}
       {/* 🖼️ UI INTEGRATION AREA: BACKDROP           */}
       {/* ========================================== */}
-      {/* To use your custom background, replace the 'backgroundColor'
-          with: backgroundImage: `url(${forestBackground})`, backgroundSize: 'cover' */}
       
       <div className="forest-grid" style={{
         display: 'flex',
@@ -127,7 +125,7 @@ export default function RewardView({ points, setPoints }) {
         gap: '20px',
         marginTop: '30px',
         minHeight: '400px',
-        backgroundColor: '#a8e6cf', // <--- REPLACE THIS WITH YOUR BACKGROUND IMAGE
+        backgroundColor: '#a8e6cf',
         padding: '30px',
         borderRadius: '20px',
         border: '4px solid #568a62'
@@ -156,3 +154,21 @@ export default function RewardView({ points, setPoints }) {
                 title="Click to combine!"
                 onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
                 onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                {/* 🎨 THIS IS WHERE THE GRAPHIC RENDERS */}
+                <span style={{ fontSize: treeData.size, display: 'inline-block' }}>
+                  {treeData.graphic}
+                </span>
+                
+                {/* Small indicator so kids know what level it is */}
+                <div style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.7)', borderRadius: '10px', padding: '2px 8px', marginTop: '5px' }}>
+                  Lvl {tree.level}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
