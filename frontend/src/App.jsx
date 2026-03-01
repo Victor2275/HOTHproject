@@ -49,9 +49,9 @@ export default function App() {
           <header>
             <h1>🌟 Learning Journey (Teacher)</h1>
             <nav>
-              <Link to="/teacher"><button>Dashboard</button></Link>
-              <Link to="/reward"><button>Forest View</button></Link>
-              <Link to="/emotion"><button>Emotion Logs</button></Link>
+              <a href="/teacher"><button>Dashboard</button></a>
+              <a href="/reward"><button>Forest View</button></a>
+              <a href="/emotion"><button>Emotion Logs</button></a>
             </nav>
             <div className="points-display">⭐ Class Stars: {points}</div>
           </header>
@@ -61,9 +61,9 @@ export default function App() {
           <header>
             <h1>🎒 My Learning</h1>
             <nav>
-              <Link to="/student"><button>My Tasks</button></Link>
-              <Link to="/reward"><button>My Forest</button></Link>
-              <Link to="/emotion"><button>My Mood</button></Link>
+              <a href="/student"><button>My Tasks</button></a>
+              <a href="/reward"><button>My Forest</button></a>
+              <a href="/emotion"><button>My Mood</button></a>
             </nav>
             <div className="points-display">⭐ My Stars: {points}</div>
           </header>

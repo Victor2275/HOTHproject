@@ -74,11 +74,16 @@ export default function StudentView({ tasks, points }) {
   function handleNext() {
     setFeedback(null);
     setAnswer('');
-    if (currentIndex < displayTasks.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      setCurrentIndex(0); // Loop back to the start
+    // compute the next index so we can reset its timer immediately
+    const nextIndex = (currentIndex + 1) % displayTasks.length;
+    const nextTask = displayTasks[nextIndex];
+
+    // Reset the remaining time for the upcoming task to its allotted timeLimitSeconds
+    if (nextTask && nextTask.timeLimitSeconds) {
+      setRemaining(prev => ({ ...prev, [nextTask.id]: nextTask.timeLimitSeconds }));
     }
+
+    setCurrentIndex(nextIndex);
   }
 
   function triggerConfetti() {
