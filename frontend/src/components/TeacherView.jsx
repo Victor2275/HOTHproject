@@ -9,22 +9,13 @@ export default function TeacherView({ tasks, setTasks }) {
   const handleAddTask = () => {
     if (!taskInput) return;
 
-    // split manual steps by newline if provided, otherwise fall back to mock steps
-    let steps;
+    // if the teacher provided manual steps, parse them; otherwise leave list empty
+    let steps = [];
     if (stepsInput.trim()) {
       steps = stepsInput
         .split('\n')
         .map(s => s.trim())
         .filter(Boolean);
-    } else {
-      // In a full app, this is where you'd call an AI API to break down the task.
-      // Here we create mock steps for demonstration.
-      steps = [
-        "Read the problem carefully.",
-        "Identify the numbers.",
-        "Solve the problem.",
-        "Check your work."
-      ];
     }
 
     const newTask = {
@@ -77,14 +68,18 @@ export default function TeacherView({ tasks, setTasks }) {
             style={{ width: '100px', marginTop: '6px' }}
           />
         <br />
-        <button onClick={() => {
-          if (!showSteps) {
-            setShowSteps(true);
-          } else {
-            handleAddTask();
-          }
-        }} style={{ marginTop: '10px' }}>
-          {showSteps ? 'Confirm Task' : 'Add Task'}
+        <button
+          onClick={() => {
+            if (!showSteps) {
+              setShowSteps(true);
+            } else {
+              handleAddTask();
+            }
+          }}
+          disabled={!taskInput.trim()}
+          style={{ marginTop: '10px' }}
+        >
+          {showSteps ? 'Confirm Task' : 'Add Steps'}
         </button>
       </div>
 
