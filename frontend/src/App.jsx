@@ -39,7 +39,7 @@ export default function App() {
   const [role, setRole] = useState(null); // Starts null, set to 'teacher' via SessionSetup
   const [points, setPoints] = useState(20);
   const [tasks, setTasks] = useState([
-    { id: 1, title: "Basic Math", steps: ["Read the numbers", "Add them together", "Write the answer"] }
+    { id: 1, title: "Basic Math", steps: ["Read the numbers", "Add them together", "Write the answer"], timeLimitSeconds: 180 }
   ]);
   const [forest, setForest] = useState([]);
   const [emotions, setEmotions] = useState([]);
