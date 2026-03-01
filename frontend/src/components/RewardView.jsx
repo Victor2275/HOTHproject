@@ -155,4 +155,4 @@ export default function RewardView({ points, setPoints }) {
                 }}
                 title="Click to combine!"
                 onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                onMouseOut={(e) => e.currentTarget.style.transform =
+                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
