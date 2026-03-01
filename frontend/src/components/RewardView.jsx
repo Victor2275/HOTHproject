@@ -32,9 +32,9 @@ const TREE_TYPES = {
 
 
 
-export default function RewardView({ points, setPoints }) {
-  const [forest, setForest] = useState([]); //
-
+// Notice we added forest and setForest into the props here!
+export default function RewardView({ points, setPoints, forest, setForest }) {
+  
   // 1. Function to buy and plant a Level 1 tree
   const plantTree = (type) => {
     const cost = TREE_TYPES[type].cost;
