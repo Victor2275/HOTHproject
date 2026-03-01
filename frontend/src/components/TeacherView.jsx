@@ -3,7 +3,8 @@ import { useState } from 'react';
 export default function TeacherView({ tasks, setTasks }) {
   const [taskInput, setTaskInput] = useState('');
   const [stepsInput, setStepsInput] = useState('');
-  const [timeLimitMinutes, setTimeLimitMinutes] = useState(5);
+  const [correctAnswer, setCorrectAnswer] = useState('');
+  const [timeLimitMinutes, setTimeLimitMinutes] = useState(1); // Set default to 1 minute
   const [showSteps, setShowSteps] = useState(false);
   
   // New AI States
@@ -16,13 +17,9 @@ export default function TeacherView({ tasks, setTasks }) {
     setIsGenerating(true);
     setAiSuggestedSteps('');
     
-    // The Prompt you requested
     const prompt = `Generate some recommended steps for solving this question: "${taskInput}" as if a 5 year old with special needs would need.`;
     
     try {
-      // NOTE: To make this real, replace the timeout with a fetch to OpenAI or Gemini API.
-      // Example real call: await fetch('https://api.openai.com/v1/...', { ... })
-      
       // Simulating API delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
@@ -57,12 +54,14 @@ export default function TeacherView({ tasks, setTasks }) {
       id: Date.now(),
       title: taskInput,
       steps,
+      correctAnswer: correctAnswer.trim(),
       timeLimitSeconds: Number(timeLimitMinutes) * 60
     };
 
     setTasks([...tasks, newTask]);
     setTaskInput('');
     setStepsInput('');
+    setCorrectAnswer('');
     setShowSteps(false);
     setAiSuggestedSteps('');
   };
@@ -84,6 +83,16 @@ export default function TeacherView({ tasks, setTasks }) {
 
         {showSteps && (
           <>
+            <label style={{ marginTop: '10px', display: 'block' }}>Expected Answer (Used to grade student):</label>
+            <input
+              type="text"
+              value={correctAnswer}
+              onChange={(e) => setCorrectAnswer(e.target.value)}
+              placeholder="e.g., 8"
+              style={{ width: '100%', maxWidth: '400px', marginTop: '4px', padding: '5px' }}
+            />
+            <br />
+
             <label style={{ marginTop: '15px', display: 'block' }}>Optional breakdown steps (one per line):</label>
             
             {/* AI GENERATOR BUTTON */}
@@ -155,6 +164,7 @@ export default function TeacherView({ tasks, setTasks }) {
         {tasks.map(task => (
           <li key={task.id} style={{ marginBottom: '8px' }}>
             {task.title} - Time: {task.timeLimitSeconds ? Math.round(task.timeLimitSeconds/60) + ' min' : '—'}
+            {task.correctAnswer && ` - Answer: ${task.correctAnswer}`}
             {task.steps && task.steps.length > 0 && (
               <ul style={{ marginTop: '4px', marginLeft: '16px' }}>
                 {task.steps.map((step, idx) => (
