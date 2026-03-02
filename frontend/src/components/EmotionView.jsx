@@ -213,7 +213,7 @@ const EmotionView = ({ emotions, tasks = [], studentsData, studentName, role }) 
       {/* 3. EMOTION LOGS */}
       <div className="emotion-sidebar" style={{ marginTop: '30px', width: '100%', maxWidth: '600px' }}>
         <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid gray', paddingBottom: '10px' }}>
-          <h2>{role === 'teacher' ? "Class Emotion Logs" : "Your Emotion Log"}</h2>
+          <h2>{role === 'teacher' ? "Class Emotion Logs" : "My Emotion Log"}</h2>
         </div>
 
         <div className="emotion-entries" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px' }}>
