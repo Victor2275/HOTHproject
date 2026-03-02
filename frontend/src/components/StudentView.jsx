@@ -80,6 +80,8 @@ export default function StudentView({ tasks, points, setPoints }) {
     } else {
       setCurrentIndex(0); // Loop back to start
     }
+
+    setCurrentIndex(nextIndex);
   }
 
   function triggerConfetti() {
