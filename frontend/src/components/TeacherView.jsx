@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { db } from '../firebase';
 import { collection, addDoc, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 
-export default function TeacherView({ tasks, studentsData, isSessionActive }) {
+export default function TeacherView({ tasks, studentsData, isSessionActive, forest, emotions }) {
   const [taskInput, setTaskInput] = useState('');
   const [stepsInput, setStepsInput] = useState('');
   const [timeLimitMinutes, setTimeLimitMinutes] = useState(1);
@@ -19,11 +19,24 @@ export default function TeacherView({ tasks, studentsData, isSessionActive }) {
   };
 
   const handleRemoveStudent = async (studentId) => {
-    if (window.confirm(`Are you sure you want to remove ${studentId} from the class roster?`)) {
+    if (window.confirm(`Are you sure you want to remove ${studentId} from the class roster? This will delete all their stars, trees, and emotion logs.`)) {
       try {
+        // 1. Remove Student Document
         await deleteDoc(doc(db, "students", studentId));
+        
+        // 2. Cascade Delete: Remove their Emotion Logs
+        const studentEmotions = emotions.filter(e => e.studentName === studentId);
+        for (const e of studentEmotions) {
+          await deleteDoc(doc(db, "emotions", e.id));
+        }
+
+        // 3. Cascade Delete: Remove their Forest Trees
+        const studentForest = forest.filter(f => f.studentName === studentId);
+        for (const f of studentForest) {
+          await deleteDoc(doc(db, "forest", f.id));
+        }
       } catch (error) {
-        console.error("Error removing student:", error);
+        console.error("Error removing student and their data:", error);
       }
     }
   };
@@ -159,17 +172,26 @@ export default function TeacherView({ tasks, studentsData, isSessionActive }) {
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {tasks.map(task => (
             <li key={task.id} style={{ marginBottom: '15px', padding: '15px', border: '1px solid #334155', borderRadius: '8px', backgroundColor: '#1e293b' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <strong style={{ color: 'white' }}>{task.title}</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <strong style={{ color: 'white', fontSize: '1.1rem' }}>{task.title}</strong>
+                  {task.steps && task.steps.length > 0 && (
+                    <ol style={{ margin: '8px 0 0 20px', padding: 0, color: '#cbd5e1', fontSize: '0.9rem' }}>
+                      {task.steps.map((step, idx) => (
+                        <li key={idx} style={{ marginBottom: '3px' }}>{step}</li>
+                      ))}
+                    </ol>
+                  )}
+                  <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '8px' }}>
+                    ⏱ Time Allotted: {Math.round(task.timeLimitSeconds/60)} min
+                  </div>
+                </div>
                 <button
                   onClick={() => handleDeleteTask(task.id)}
-                  style={{ background: '#ef4444', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  style={{ background: '#ef4444', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer', marginLeft: '10px' }}
                 >
                   Remove
                 </button>
-              </div>
-              <div style={{ fontSize: '0.9rem', color: '#94a3b8', marginTop: '5px' }}>
-                Time Allotted: {Math.round(task.timeLimitSeconds/60)} min
               </div>
             </li>
           ))}
@@ -179,23 +201,29 @@ export default function TeacherView({ tasks, studentsData, isSessionActive }) {
       {/* Right side: Student Roster */}
       <div style={{ flex: '1', minWidth: '300px', maxWidth: '400px', background: '#1e293b', padding: '20px', borderRadius: '15px' }}>
         <h2 style={{ color: 'white', marginTop: 0 }}>👥 Class Roster</h2>
-        <p style={{ color: '#94a3b8' }}>Connected Students & Stars</p>
+        <p style={{ color: '#94a3b8' }}>Connected Students & Stats</p>
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {studentsData.length === 0 && <p style={{ color: 'white' }}>No students have joined yet.</p>}
-          {studentsData.map(student => (
-            <li key={student.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', borderBottom: '1px solid #334155', color: 'white' }}>
-              <span style={{ fontWeight: 'bold' }}>{student.name}</span>
-              <div>
-                <span style={{ marginRight: '15px' }}>{student.points || 0} ⭐</span>
-                <button 
-                  onClick={() => handleRemoveStudent(student.id)} 
-                  style={{ background: '#ef4444', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                >
-                  Remove
-                </button>
-              </div>
-            </li>
-          ))}
+          {studentsData.map(student => {
+            const studentTrees = forest.filter(f => f.studentName === student.id);
+            const pineCount = studentTrees.filter(f => f.type === 'pine').length;
+
+            return (
+              <li key={student.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #334155', color: 'white' }}>
+                <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{student.name}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  {pineCount > 0 && <span title="Pine Trees" style={{ fontSize: '1rem' }}>🌲 x {pineCount}</span>}
+                  <span title="Total Stars" style={{ fontSize: '1rem' }}>⭐ {student.points || 0}</span>
+                  <button 
+                    onClick={() => handleRemoveStudent(student.id)} 
+                    style={{ background: '#ef4444', color: 'white', padding: '5px 8px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </div>
 

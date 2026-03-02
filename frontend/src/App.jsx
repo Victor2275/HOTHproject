@@ -148,7 +148,7 @@ export default function App() {
               path="/teacher"
               element={
                 role === 'teacher'
-                  ? <TeacherView tasks={tasks} studentsData={studentsData} isSessionActive={isSessionActive} />
+                  ? <TeacherView tasks={tasks} studentsData={studentsData} isSessionActive={isSessionActive} forest={forest} emotions={emotions} />
                   : <Navigate to="/" replace />
               }
             />
