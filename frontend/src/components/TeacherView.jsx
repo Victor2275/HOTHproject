@@ -45,12 +45,46 @@ export default function TeacherView({ tasks, studentsData, isSessionActive, fore
     if (!taskInput.trim()) return;
     setIsGenerating(true);
     setAiSuggestedSteps('');
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const mockResponse = `1. Look at the numbers together.\n2. Count on your fingers slowly.\n3. Say the answer out loud.\n4. Write the answer down carefully.`;
-      setAiSuggestedSteps(mockResponse);
+      // Pull the API key from the .env file
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      
+      if (!apiKey) {
+        alert("API Key is missing! Please add VITE_GEMINI_API_KEY to your .env file and restart your server.");
+        setIsGenerating(false);
+        return;
+      }
+
+      const prompt = `You are a helpful teaching assistant for elementary school students. 
+      Break down the following task into 3 to 5 simple, kid-friendly steps. 
+      Keep the steps encouraging and easy to read.
+      Return ONLY the numbered steps, each on a new line. 
+      Task: "${taskInput}"`;
+
+      // Call the Gemini API directly using the updated gemini-2.5-flash model
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        console.error("API Error:", data.error);
+        setAiSuggestedSteps("Sorry, the AI encountered an error. Please check your browser console for details.");
+      } else {
+        // Extract the generated text from the response
+        const aiText = data.candidates[0].content.parts[0].text;
+        setAiSuggestedSteps(aiText.trim());
+      }
+
     } catch (error) {
       console.error("AI Generation failed", error);
+      setAiSuggestedSteps("Error connecting to AI. Please check your network connection.");
     } finally {
       setIsGenerating(false);
     }
