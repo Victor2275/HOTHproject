@@ -55,7 +55,7 @@
 
 .sidebar-header {
   padding: 24px;
-  background: #ddb889;
+  background: #b3cba7;
   color: white;
   display: flex;
   justify-content: space-between;
@@ -89,7 +89,7 @@
   flex: 1;
   overflow-y: auto;
   padding: 16px;
-  background: #997541;
+  background: #78935c;
 }
 
 .empty-state {
