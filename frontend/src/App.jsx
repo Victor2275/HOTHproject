@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { db } from './firebase'; 
-import { collection, onSnapshot } from 'firebase/firestore'; 
+import { collection, onSnapshot, doc } from 'firebase/firestore'; 
 import TeacherView from './components/TeacherView';
 import StudentView from './components/StudentView';
 import RewardView from './components/RewardView';
@@ -50,7 +50,6 @@ function SessionSetup({ setRole }) {
 }
 
 export default function App() {
-  // Keep track of role in sessionStorage so refreshes don't break the session type
   const [role, setRole] = useState(() => sessionStorage.getItem('taskableRole') || null);
   
   useEffect(() => {
@@ -58,13 +57,13 @@ export default function App() {
     else sessionStorage.removeItem('taskableRole');
   }, [role]);
 
-  // NO LOCAL STORAGE FOR STUDENT NAME - it resets completely on refresh!
   const [studentName, setStudentName] = useState('');
   
   const [tasks, setTasks] = useState([]); 
   const [forest, setForest] = useState([]);
   const [emotions, setEmotions] = useState([]);
   const [studentsData, setStudentsData] = useState([]);
+  const [isSessionActive, setIsSessionActive] = useState(false);
 
   // FIREBASE REAL-TIME LISTENERS
   useEffect(() => {
@@ -89,11 +88,18 @@ export default function App() {
       setStudentsData(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
+    const sessionUnsub = onSnapshot(doc(db, "session", "status"), (docSnap) => {
+      if (docSnap.exists()) {
+        setIsSessionActive(docSnap.data().isActive);
+      }
+    });
+
     return () => {
       tasksUnsub();
       forestUnsub();
       emotionsUnsub();
       studentsUnsub();
+      sessionUnsub();
     };
   }, []);
 
@@ -142,7 +148,7 @@ export default function App() {
               path="/teacher"
               element={
                 role === 'teacher'
-                  ? <TeacherView tasks={tasks} studentsData={studentsData} />
+                  ? <TeacherView tasks={tasks} studentsData={studentsData} isSessionActive={isSessionActive} />
                   : <Navigate to="/" replace />
               }
             />
@@ -161,6 +167,7 @@ export default function App() {
                     studentsData={studentsData}
                     studentName={studentName}
                     setStudentName={setStudentName}
+                    isSessionActive={isSessionActive}
                   />
                 )
               }

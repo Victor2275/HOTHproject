@@ -1,14 +1,32 @@
 import React, { useState } from 'react';
 import { db } from '../firebase';
-import { collection, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 
-export default function TeacherView({ tasks, studentsData }) {
+export default function TeacherView({ tasks, studentsData, isSessionActive }) {
   const [taskInput, setTaskInput] = useState('');
   const [stepsInput, setStepsInput] = useState('');
   const [timeLimitMinutes, setTimeLimitMinutes] = useState(1);
   const [showSteps, setShowSteps] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiSuggestedSteps, setAiSuggestedSteps] = useState('');
+
+  const handleToggleSession = async () => {
+    try {
+      await setDoc(doc(db, "session", "status"), { isActive: !isSessionActive });
+    } catch (error) {
+      console.error("Error toggling session status:", error);
+    }
+  };
+
+  const handleRemoveStudent = async (studentId) => {
+    if (window.confirm(`Are you sure you want to remove ${studentId} from the class roster?`)) {
+      try {
+        await deleteDoc(doc(db, "students", studentId));
+      } catch (error) {
+        console.error("Error removing student:", error);
+      }
+    }
+  };
 
   const handleAIGenerate = async () => {
     if (!taskInput.trim()) return;
@@ -55,8 +73,24 @@ export default function TeacherView({ tasks, studentsData }) {
   return (
     <div className="teacher-view" style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', justifyContent: 'center' }}>
       
-      {/* Left side: Task Creation */}
+      {/* Left side: Task Creation & Controls */}
       <div style={{ flex: '1', minWidth: '300px', maxWidth: '500px' }}>
+        
+        <div style={{ marginBottom: '20px', padding: '20px', background: '#1e293b', borderRadius: '10px', textAlign: 'center', border: `2px solid ${isSessionActive ? '#4ade80' : '#ef4444'}` }}>
+          <h3 style={{ color: 'white', marginTop: 0 }}>Sync Controls</h3>
+          <button 
+            onClick={handleToggleSession}
+            style={{ 
+              padding: '15px 20px', fontSize: '1.2rem', 
+              background: isSessionActive ? '#ef4444' : '#4ade80', 
+              color: isSessionActive ? 'white' : '#0f172a',
+              fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', width: '100%' 
+            }}
+          >
+            {isSessionActive ? "⏸ Pause Tasks for Students" : "▶️ Start Tasks for Students"}
+          </button>
+        </div>
+
         <h2>👩‍🏫 Create Tasks</h2>
         <div className="input-group">
           <label>Enter a task or question for the student:</label>
@@ -149,9 +183,17 @@ export default function TeacherView({ tasks, studentsData }) {
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {studentsData.length === 0 && <p style={{ color: 'white' }}>No students have joined yet.</p>}
           {studentsData.map(student => (
-            <li key={student.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', borderBottom: '1px solid #334155', color: 'white' }}>
+            <li key={student.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', borderBottom: '1px solid #334155', color: 'white' }}>
               <span style={{ fontWeight: 'bold' }}>{student.name}</span>
-              <span>{student.points || 0} ⭐</span>
+              <div>
+                <span style={{ marginRight: '15px' }}>{student.points || 0} ⭐</span>
+                <button 
+                  onClick={() => handleRemoveStudent(student.id)} 
+                  style={{ background: '#ef4444', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  Remove
+                </button>
+              </div>
             </li>
           ))}
         </ul>

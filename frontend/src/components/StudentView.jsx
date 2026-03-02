@@ -7,7 +7,7 @@ const SAMPLE_TASKS = [
   { id: 'sample1', title: 'Solve 5 + 3', steps: ['Hold up 5 fingers', 'Hold up 3 fingers', 'Count them all'], timeLimitSeconds: 60 }
 ];
 
-export default function StudentView({ tasks, studentsData, studentName, setStudentName }) {
+export default function StudentView({ tasks, studentsData, studentName, setStudentName, isSessionActive }) {
   const displayTasks = [...SAMPLE_TASKS, ...(tasks || [])];
   
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,7 +31,7 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
   }, [currentIndex, currentTask]);
 
   useEffect(() => {
-    if (isFinished) return;
+    if (isFinished || !isSessionActive) return;
     const id = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev === null) return null;
@@ -40,7 +40,7 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
       });
     }, 1000);
     return () => clearInterval(id);
-  }, [isFinished]);
+  }, [isFinished, isSessionActive]);
 
   useEffect(() => {
     if (timeLeft === 0 && !isFinished) {
@@ -62,6 +62,7 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
     }
   };
 
+  // 1. Show Login Screen if no student is selected
   if (!studentName) {
     const isJoinDisabled = (!isNewStudent && !selectedExisting) || (isNewStudent && !tempName.trim());
 
@@ -118,6 +119,18 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
     );
   }
 
+  // 2. Show Wait Screen if teacher hasn't pressed start yet
+  if (!isSessionActive) {
+    return (
+      <div style={{ textAlign: 'center', marginTop: '50px', color: '#fff' }}>
+        <h2>⏳ Please Wait</h2>
+        <p style={{ fontSize: '1.2rem', marginTop: '20px' }}>Your teacher hasn't started the tasks yet.</p>
+        <div className="spinner" style={{ marginTop: '30px', fontSize: '3rem' }}>🧘‍♂️</div>
+        <p style={{ color: '#94a3b8', marginTop: '20px' }}>Get ready! Tasks will appear here as soon as the session begins.</p>
+      </div>
+    );
+  }
+
   function formatTime(sec) {
     if (sec == null) return '—';
     const s = Math.max(0, Math.floor(sec));
@@ -147,6 +160,7 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#38bdf8', '#4ade80', '#fde68a'] });
   }
 
+  // 3. Show Finish Screen
   if (isFinished) {
     return (
       <div style={{ textAlign: 'center', marginTop: '50px', color: '#fff' }}>
@@ -164,6 +178,7 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
     );
   }
 
+  // 4. Show Active Task
   if (!currentTask) return <div style={{ textAlign: 'center', marginTop: '50px' }}><h2>🎒 Student Display</h2><p>Waiting for tasks...</p></div>;
 
   return (
