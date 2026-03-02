@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
+import { db } from '../firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const SAMPLE_TASKS = [
-  { id: 'sample1', title: 'Solve 5 + 3', steps: ['Hold up 5 fingers', 'Hold up 3 fingers', 'Count them all'], timeLimitSeconds: 60 },
-  { id: 'sample2', title: 'What color is the sky?', steps: ['Look out the window', 'Think about daytime'], timeLimitSeconds: 60 },
-  { id: 'sample3', title: 'How many legs does a dog have?', steps: ['Look at a picture of a dog', 'Count the legs 1, 2, 3, 4'], timeLimitSeconds: 60 },
-  { id: 'sample4', title: 'Solve 2 + 2', steps: ['Hold up 2 fingers on one hand', 'Hold up 2 fingers on the other', 'Count them together'], timeLimitSeconds: 60 },
-  { id: 'sample5', title: 'Solve 10 - 1', steps: ['Hold up all 10 fingers', 'Put 1 finger down', 'Count how many are left'], timeLimitSeconds: 60 },
-  { id: 'sample6', title: 'Solve 3 + 1', steps: ['Start with 3', 'Count up 1 more number'], timeLimitSeconds: 60 },
-  { id: 'sample7', title: 'Solve 4 + 4', steps: ['Think of a spider', 'Count 4 legs on one side', 'Count 4 legs on the other'], timeLimitSeconds: 60 },
-  { id: 'sample8', title: 'Solve 5 - 2', steps: ['Hold up 5 fingers', 'Put 2 fingers down', 'Count the standing fingers'], timeLimitSeconds: 60 }
+  { id: 'sample1', title: 'Solve 5 + 3', steps: ['Hold up 5 fingers', 'Hold up 3 fingers', 'Count them all'], timeLimitSeconds: 60 }
 ];
 
-export default function StudentView({ tasks, points, setPoints }) {
-  // Merges the default sample tasks with the ones dynamically pulled from Firebase
+export default function StudentView({ tasks, studentsData, studentName, setStudentName }) {
   const displayTasks = [...SAMPLE_TASKS, ...(tasks || [])];
-
+  
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(null);
   const [isFinished, setIsFinished] = useState(false);
+  
+  // Login States
+  const [selectedExisting, setSelectedExisting] = useState('');
+  const [isNewStudent, setIsNewStudent] = useState(false);
+  const [tempName, setTempName] = useState('');
 
   const currentTask = displayTasks[currentIndex];
+  const points = studentsData.find(s => s.id === studentName)?.points || 0;
 
   useEffect(() => {
     if (currentTask && currentTask.timeLimitSeconds) {
@@ -32,7 +32,6 @@ export default function StudentView({ tasks, points, setPoints }) {
 
   useEffect(() => {
     if (isFinished) return;
-
     const id = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev === null) return null;
@@ -40,15 +39,84 @@ export default function StudentView({ tasks, points, setPoints }) {
         return 0;
       });
     }, 1000);
-
     return () => clearInterval(id);
   }, [isFinished]);
 
   useEffect(() => {
     if (timeLeft === 0 && !isFinished) {
-      handleNext(); // Skips to next WITHOUT giving a star
+      handleNext();
     }
   }, [timeLeft, isFinished]);
+
+  const handleJoinClass = async () => {
+    let nameToJoin = isNewStudent ? tempName.trim() : selectedExisting;
+
+    if (nameToJoin && nameToJoin !== 'NEW') {
+      const docRef = doc(db, "students", nameToJoin);
+      const docSnap = await getDoc(docRef);
+      // Initialize if new student
+      if (!docSnap.exists()) {
+        await setDoc(docRef, { name: nameToJoin, points: 0 });
+      }
+      setStudentName(nameToJoin);
+    }
+  };
+
+  if (!studentName) {
+    const isJoinDisabled = (!isNewStudent && !selectedExisting) || (isNewStudent && !tempName.trim());
+
+    return (
+      <div style={{ textAlign: 'center', marginTop: '50px', color: '#fff' }}>
+        <h2>👋 Welcome to TaskAble!</h2>
+        <p style={{ marginBottom: '20px' }}>Please select your name or add a new one to join the class.</p>
+        
+        <select 
+          value={selectedExisting} 
+          onChange={(e) => {
+            if (e.target.value === 'NEW') {
+              setIsNewStudent(true);
+              setSelectedExisting('NEW');
+            } else {
+              setIsNewStudent(false);
+              setSelectedExisting(e.target.value);
+            }
+          }}
+          style={{ padding: '10px', fontSize: '1.2rem', borderRadius: '5px', marginBottom: '15px', cursor: 'pointer' }}
+        >
+          <option value="" disabled>Select your name...</option>
+          {studentsData.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          <option value="NEW">+ Add New Student</option>
+        </select>
+        
+        <br/>
+
+        {isNewStudent && (
+          <input 
+            type="text" 
+            value={tempName} 
+            onChange={e => setTempName(e.target.value)} 
+            placeholder="Enter First Name" 
+            style={{ padding: '10px', fontSize: '1.2rem', borderRadius: '5px', marginTop: '10px' }}
+          />
+        )}
+        <br/>
+        
+        <button 
+          onClick={handleJoinClass}
+          disabled={isJoinDisabled}
+          style={{ 
+            marginTop: '20px', padding: '10px 20px', 
+            background: isJoinDisabled ? '#94a3b8' : '#38bdf8', 
+            border: 'none', borderRadius: '5px', 
+            cursor: isJoinDisabled ? 'not-allowed' : 'pointer', 
+            fontSize: '1.1rem', fontWeight: 'bold' 
+          }}
+        >
+          Join Class
+        </button>
+      </div>
+    );
+  }
 
   function formatTime(sec) {
     if (sec == null) return '—';
@@ -66,9 +134,9 @@ export default function StudentView({ tasks, points, setPoints }) {
     }
   }
 
-  function handleCompleteTask() {
+  async function handleCompleteTask() {
     triggerConfetti();
-    setPoints(prev => prev + 1); // Awards exactly 1 star
+    await setDoc(doc(db, "students", studentName), { points: points + 1 }, { merge: true });
     
     setTimeout(() => {
       handleNext();
@@ -76,27 +144,18 @@ export default function StudentView({ tasks, points, setPoints }) {
   }
 
   function triggerConfetti() {
-    confetti({
-      particleCount: 150,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#38bdf8', '#4ade80', '#fde68a']
-    });
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#38bdf8', '#4ade80', '#fde68a'] });
   }
 
   if (isFinished) {
     return (
       <div style={{ textAlign: 'center', marginTop: '50px', color: '#fff' }}>
-        <h2>🎉 Fantastic Job! 🎉</h2>
-        <p style={{ fontSize: '1.2rem', marginTop: '20px' }}>You have completed all your tasks for today.</p>
+        <h2>🎉 Fantastic Job, {studentName}! 🎉</h2>
         <div style={{ fontSize: '2rem', marginTop: '20px', color: '#fde68a', fontWeight: 'bold' }}>
           ⭐ Total Stars Earned: {points}
         </div>
         <button
-          onClick={() => {
-            setIsFinished(false);
-            setCurrentIndex(0);
-          }}
+          onClick={() => { setIsFinished(false); setCurrentIndex(0); }}
           style={{ marginTop: '40px', padding: '10px 20px', background: '#38bdf8', color: '#0f172a', fontWeight: 'bold', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '1.1rem' }}
         >
           Start Over 🔁
@@ -105,17 +164,12 @@ export default function StudentView({ tasks, points, setPoints }) {
     );
   }
 
-  if (!currentTask) return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <h2>🎒 Student Display</h2>
-      <p>Waiting for tasks...</p>
-    </div>
-  );
+  if (!currentTask) return <div style={{ textAlign: 'center', marginTop: '50px' }}><h2>🎒 Student Display</h2><p>Waiting for tasks...</p></div>;
 
   return (
     <div className="student-view" style={{ textAlign: 'center', padding: '20px' }}>
       <div style={{ marginBottom: '20px', fontSize: '1.2rem', color: '#38bdf8' }}>
-        ⭐ Total Stars: {points}
+        👤 {studentName} | ⭐ Stars: {points}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -153,10 +207,7 @@ export default function StudentView({ tasks, points, setPoints }) {
           </div>
         </div>
       </div>
-
-      <p style={{ marginTop: '25px', fontStyle: 'italic', color: '#94a3b8' }}>
-        Question {currentIndex + 1} of {displayTasks.length}
-      </p>
+      <p style={{ marginTop: '25px', fontStyle: 'italic', color: '#94a3b8' }}>Question {currentIndex + 1} of {displayTasks.length}</p>
     </div>
   );
 }

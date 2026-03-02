@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { db } from './firebase'; 
-import { collection, onSnapshot, query } from 'firebase/firestore'; 
+import { collection, onSnapshot } from 'firebase/firestore'; 
 import TeacherView from './components/TeacherView';
 import StudentView from './components/StudentView';
 import RewardView from './components/RewardView';
@@ -18,6 +18,11 @@ function SessionSetup({ setRole }) {
     navigate('/teacher');
   };
 
+  const joinAsStudent = () => {
+    setRole('student');
+    navigate('/student');
+  };
+
   return (
     <div className="setup-container" style={{ textAlign: 'center', marginTop: '50px' }}>
       <h2>🏫 Start New Learning Session</h2>
@@ -25,45 +30,46 @@ function SessionSetup({ setRole }) {
         <QRCodeSVG value={studentJoinUrl} size={256} />
       </div>
       <p style={{ marginTop: '20px' }}>Students: Scan to join the session!</p>
-      <button
-        onClick={startSession}
-        style={{ padding: '15px 30px', fontSize: '1.2rem', marginTop: '30px', cursor: 'pointer' }}
-      >
-        Enter Teacher Dashboard →
-      </button>
+      
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '30px' }}>
+        <button
+          onClick={startSession}
+          style={{ padding: '15px 30px', fontSize: '1.2rem', cursor: 'pointer', background: '#997541', color: 'white', border: 'none', borderRadius: '8px' }}
+        >
+          Enter Teacher Dashboard →
+        </button>
+        <button
+          onClick={joinAsStudent}
+          style={{ padding: '15px 30px', fontSize: '1.2rem', cursor: 'pointer', background: '#38bdf8', color: '#0f172a', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}
+        >
+          Join as Student →
+        </button>
+      </div>
     </div>
   );
 }
 
 export default function App() {
-  const [role, setRole] = useState(null);
+  // Keep track of role in sessionStorage so refreshes don't break the session type
+  const [role, setRole] = useState(() => sessionStorage.getItem('taskableRole') || null);
   
-  // Load points from local storage, or start at 0 if no saved points exist
-  const [points, setPoints] = useState(() => {
-    const savedStars = localStorage.getItem('taskableStars');
-    return savedStars !== null ? parseInt(savedStars, 10) : 0; 
-  });
-
-  // Automatically save points to local storage whenever they change
   useEffect(() => {
-    localStorage.setItem('taskableStars', points.toString());
-  }, [points]);
+    if (role) sessionStorage.setItem('taskableRole', role);
+    else sessionStorage.removeItem('taskableRole');
+  }, [role]);
 
-  const [tasks, setTasks] = useState([]); // Will be populated from Firebase
+  // NO LOCAL STORAGE FOR STUDENT NAME - it resets completely on refresh!
+  const [studentName, setStudentName] = useState('');
+  
+  const [tasks, setTasks] = useState([]); 
   const [forest, setForest] = useState([]);
   const [emotions, setEmotions] = useState([]);
+  const [studentsData, setStudentsData] = useState([]);
 
-  // FIREBASE REAL-TIME LISTENER
+  // FIREBASE REAL-TIME LISTENERS
   useEffect(() => {
-    const tasksCollection = collection(db, "tasks");
-    const q = query(tasksCollection);
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const tasksData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      // Sort tasks by creation time locally to avoid needing complex Firestore indexes
+    const tasksUnsub = onSnapshot(collection(db, "tasks"), (snapshot) => {
+      const tasksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       tasksData.sort((a, b) => {
         if (!a.createdAt || !b.createdAt) return 0;
         return a.createdAt.seconds - b.createdAt.seconds;
@@ -71,8 +77,33 @@ export default function App() {
       setTasks(tasksData);
     });
 
-    return () => unsubscribe(); // Cleanup listener when app closes
+    const forestUnsub = onSnapshot(collection(db, "forest"), (snapshot) => {
+      setForest(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    const emotionsUnsub = onSnapshot(collection(db, "emotions"), (snapshot) => {
+      setEmotions(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    const studentsUnsub = onSnapshot(collection(db, "students"), (snapshot) => {
+      setStudentsData(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    return () => {
+      tasksUnsub();
+      forestUnsub();
+      emotionsUnsub();
+      studentsUnsub();
+    };
   }, []);
+
+  const classStars = studentsData.reduce((acc, curr) => acc + (curr.points || 0), 0);
+  const myPoints = studentsData.find(s => s.id === studentName)?.points || 0;
+
+  const handleLogout = () => {
+    setRole(null);
+    setStudentName('');
+  };
 
   return (
     <Router>
@@ -81,39 +112,25 @@ export default function App() {
           <header>
             <h1>🌟 TaskAble (Teacher View)</h1>
             <nav>
-              <Link to="/teacher">
-                <button style={{ marginRight: '10px', marginLeft: '10px' }}>
-                  Student Tasks
-                </button>
-              </Link>
-              <Link to="/reward">
-                <button style={{ marginRight: '10px'}}>
-                  Student Reward
-                </button>
-              </Link>
-              <Link to="/emotion">
-                <button>Student Emotion Log</button>
-              </Link>
+              <Link to="/teacher"><button style={{ marginRight: '10px', marginLeft: '10px' }}>Dashboard</button></Link>
+              <Link to="/reward"><button style={{ marginRight: '10px'}}>Student Rewards</button></Link>
+              <Link to="/emotion"><button style={{ marginRight: '10px'}}>Student Emotion Log</button></Link>
+              <Link to="/"><button onClick={handleLogout} style={{ background: '#ef4444' }}>Exit</button></Link>
             </nav>
-            <div className="points-display">⭐ Class Stars: {points}</div>
+            <div className="points-display">⭐ Total Class Stars: {classStars}</div>
           </header>
         )}
 
-        {role !== 'teacher' && window.location.pathname !== '/' && (
+        {role === 'student' && window.location.pathname !== '/' && (
           <header>
             <h1 style={{ textAlign: 'center' }}>🎒TaskAble</h1>
             <nav>
-              <Link to="/student">
-                <button style={{ marginRight: '10px', marginLeft: '10px' }}>My Tasks</button>
-              </Link>
-              <Link to="/reward">
-                <button style={{ marginRight: '10px'}}>My Reward Chart</button>
-              </Link>
-              <Link to="/emotion">
-                <button style={{ marginRight: '10px'}}>My Mood</button>
-              </Link>
+              <Link to="/student"><button style={{ marginRight: '10px', marginLeft: '10px' }}>My Tasks</button></Link>
+              <Link to="/reward"><button style={{ marginRight: '10px'}}>My Reward Chart</button></Link>
+              <Link to="/emotion"><button style={{ marginRight: '10px'}}>My Mood</button></Link>
+              <Link to="/"><button onClick={handleLogout} style={{ background: '#ef4444' }}>Leave Class</button></Link>
             </nav>
-            <div className="points-display">⭐ My Stars: {points}</div>
+            <div className="points-display">⭐ My Stars: {studentName ? myPoints : 0}</div>
           </header>
         )}
 
@@ -125,7 +142,7 @@ export default function App() {
               path="/teacher"
               element={
                 role === 'teacher'
-                  ? <TeacherView tasks={tasks} setTasks={setTasks} />
+                  ? <TeacherView tasks={tasks} studentsData={studentsData} />
                   : <Navigate to="/" replace />
               }
             />
@@ -133,23 +150,30 @@ export default function App() {
             <Route
               path="/student"
               element={
-                <StudentView
-                  tasks={tasks}
-                  points={points}
-                  setPoints={setPoints}
-                  setEmotions={setEmotions}
-                />
+                role === 'teacher' ? (
+                  <div style={{ textAlign: 'center', marginTop: '50px', color: 'white' }}>
+                    <h2>Teachers cannot complete tasks.</h2>
+                    <p>Please use the Teacher Dashboard, or click Exit to join as a student.</p>
+                  </div>
+                ) : (
+                  <StudentView
+                    tasks={tasks}
+                    studentsData={studentsData}
+                    studentName={studentName}
+                    setStudentName={setStudentName}
+                  />
+                )
               }
             />
             
             <Route
               path="/reward"
-              element={<RewardView points={points} setPoints={setPoints} forest={forest} setForest={setForest} />}
+              element={<RewardView studentsData={studentsData} forest={forest} studentName={studentName} role={role} />}
             />
 
             <Route
               path="/emotion"
-              element={<EmotionView emotions={emotions} setEmotions={setEmotions} tasks={tasks} />}
+              element={<EmotionView emotions={emotions} tasks={tasks} studentsData={studentsData} studentName={studentName} role={role} />}
             />
           </Routes>
         </main>
