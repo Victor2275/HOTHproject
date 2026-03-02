@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { db } from './firebase'; // Ensure you have created this file
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import TeacherView from './components/TeacherView';
 import StudentView from './components/StudentView';
 import RewardView from './components/RewardView';
@@ -38,34 +36,29 @@ function SessionSetup({ setRole }) {
 export default function App() {
   const [role, setRole] = useState(null);
   const [points, setPoints] = useState(1000);
-  const [tasks, setTasks] = useState([]); // Now synced with Firestore
+  const [tasks, setTasks] = useState([
+    { id: 1, title: "Basic Math", steps: ["Read the numbers", "Add them together", "Write the answer"], timeLimitSeconds: 180 }
+  ]);
   const [forest, setForest] = useState([]);
   const [emotions, setEmotions] = useState([]);
-
-  // Real-time listener for tasks
-  useEffect(() => {
-    const q = query(collection(db, "tasks"), orderBy("createdAt", "asc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const taskData = snapshot.docs.map(doc => ({
-        id: doc.id, // Firestore document ID
-        ...doc.data()
-      }));
-      setTasks(taskData);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   return (
     <Router>
       <div className="app-container">
         {role === 'teacher' && (
           <header>
-            <h1>🌟 Learning Journey (Teacher)</h1>
+            <h1>🌟 TaskAble (Teacher View)</h1>
             <nav>
-              <a href="/teacher"><button>Dashboard</button></a>
-              <a href="/reward"><button>Forest View</button></a>
-              <a href="/emotion"><button>Emotion Logs</button></a>
+        <a href="/teacher">
+            <button style={{ marginRight: '10px', marginLeft: '10px' }}>
+                Student Tasks
+            </button>
+            </a>
+           <a href="/reward">
+            <button style={{ marginRight: '10px'}}>
+                Student Reward </button>
+                </a>
+              <a href="/emotion"><button>Student Emotion Log</button></a>
             </nav>
             <div className="points-display">⭐ Class Stars: {points}</div>
           </header>
@@ -76,7 +69,7 @@ export default function App() {
             <h1>🎒 My Learning</h1>
             <nav>
               <a href="/student"><button>My Tasks</button></a>
-              <a href="/reward"><button>My Forest</button></a>
+              <a href="/reward"><button>My Reward Chart</button></a>
               <a href="/emotion"><button>My Mood</button></a>
             </nav>
             <div className="points-display">⭐ My Stars: {points}</div>
@@ -91,7 +84,7 @@ export default function App() {
               path="/teacher"
               element={
                 role === 'teacher'
-                  ? <TeacherView tasks={tasks} />
+                  ? <TeacherView tasks={tasks} setTasks={setTasks} />
                   : <Navigate to="/" replace />
               }
             />
@@ -115,6 +108,7 @@ export default function App() {
 
             <Route
               path="/emotion"
+              // Pass tasks here so the student can select them!
               element={<EmotionView emotions={emotions} setEmotions={setEmotions} tasks={tasks} />}
             />
           </Routes>
@@ -123,3 +117,4 @@ export default function App() {
     </Router>
   );
 }
+

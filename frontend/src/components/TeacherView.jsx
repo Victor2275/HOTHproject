@@ -73,7 +73,7 @@ export default function TeacherView({ tasks }) {
 
   return (
     <div className="teacher-view">
-      <h2>👩‍🏫 Teacher Dashboard</h2>
+      <h2>👩‍🏫 What needs to be done?</h2>
       <div className="input-group">
         <label>Enter a task or question for the student:</label>
         <br />
@@ -101,9 +101,9 @@ export default function TeacherView({ tasks }) {
             <button
               onClick={handleAIGenerate}
               disabled={isGenerating || !taskInput.trim()}
-              style={{ background: '#9333ea', color: 'white', marginBottom: '10px', marginTop: '10px' }}
+              style={{ background: '#997541', color: 'white', marginBottom: '10px', marginTop: '10px' }}
             >
-              {isGenerating ? "🤖 Thinking..." : "✨ Generate AI Steps"}
+              {isGenerating ? "🤖 Thinking..." : "✨ Use AI to help break down steps!"}
             </button>
 
             {aiSuggestedSteps && (
