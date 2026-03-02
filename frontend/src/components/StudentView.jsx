@@ -4,7 +4,6 @@ import { db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const SAMPLE_TASKS = [
-  { id: 'sample1', title: 'Solve 5 + 3', steps: ['Hold up 5 fingers', 'Hold up 3 fingers', 'Count them all'], timeLimitSeconds: 60 }
 ];
 
 export default function StudentView({ tasks, studentsData, studentName, setStudentName, isSessionActive }) {
