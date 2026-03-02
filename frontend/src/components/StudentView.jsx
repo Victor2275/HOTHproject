@@ -3,15 +3,14 @@ import confetti from 'canvas-confetti';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-const SAMPLE_TASKS = [
-];
+const SAMPLE_TASKS = [];
 
-export default function StudentView({ tasks, studentsData, studentName, setStudentName, isSessionActive }) {
+export default function StudentView({ 
+  tasks, studentsData, studentName, setStudentName, isSessionActive, restartCounter,
+  currentIndex, setCurrentIndex, isFinished, setIsFinished, 
+  timeLeft, setTimeLeft, activeTaskId, setActiveTaskId 
+}) {
   const displayTasks = [...SAMPLE_TASKS, ...(tasks || [])];
-  
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(null);
-  const [isFinished, setIsFinished] = useState(false);
   
   // Login States
   const [selectedExisting, setSelectedExisting] = useState('');
@@ -21,13 +20,30 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
   const currentTask = displayTasks[currentIndex];
   const points = studentsData.find(s => s.id === studentName)?.points || 0;
 
+  // Track the restart counter to reset state when teacher forces a reset
+  const [lastRestartCounter, setLastRestartCounter] = useState(restartCounter);
+
   useEffect(() => {
-    if (currentTask && currentTask.timeLimitSeconds) {
-      setTimeLeft(currentTask.timeLimitSeconds);
+    if (restartCounter !== lastRestartCounter) {
+      setIsFinished(false);
+      setCurrentIndex(0);
+      setActiveTaskId(null);
+      setLastRestartCounter(restartCounter);
+    }
+  }, [restartCounter, lastRestartCounter, setIsFinished, setCurrentIndex, setActiveTaskId]);
+
+  useEffect(() => {
+    if (currentTask) {
+      // Only set the time left if we are moving to a new task id we aren't already tracking
+      if (currentTask.id !== activeTaskId) {
+        setTimeLeft(currentTask.timeLimitSeconds || null);
+        setActiveTaskId(currentTask.id);
+      }
     } else {
       setTimeLeft(null);
+      setActiveTaskId(null);
     }
-  }, [currentIndex, currentTask]);
+  }, [currentIndex, currentTask, activeTaskId, setTimeLeft, setActiveTaskId]);
 
   useEffect(() => {
     if (isFinished || !isSessionActive) return;
@@ -39,7 +55,7 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
       });
     }, 1000);
     return () => clearInterval(id);
-  }, [isFinished, isSessionActive]);
+  }, [isFinished, isSessionActive, setTimeLeft]);
 
   useEffect(() => {
     if (timeLeft === 0 && !isFinished) {
@@ -167,18 +183,15 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
         <div style={{ fontSize: '2rem', marginTop: '20px', color: '#fde68a', fontWeight: 'bold' }}>
           ⭐ Total Stars Earned: {points}
         </div>
-        <button
-          onClick={() => { setIsFinished(false); setCurrentIndex(0); }}
-          style={{ marginTop: '40px', padding: '10px 20px', background: '#38bdf8', color: '#0f172a', fontWeight: 'bold', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '1.1rem' }}
-        >
-          Start Over 🔁
-        </button>
+        <p style={{ marginTop: '30px', fontSize: '1.2rem', color: '#cbd5e1' }}>
+          Waiting for the teacher to assign new tasks...
+        </p>
       </div>
     );
   }
 
   // 4. Show Active Task
-  if (!currentTask) return <div style={{ textAlign: 'center', marginTop: '50px' }}><h2>🎒 Student Display</h2><p>Waiting for tasks...</p></div>;
+  if (!currentTask) return <div style={{ textAlign: 'center', marginTop: '50px', color: 'white' }}><h2>🎒 Student Display</h2><p>Waiting for tasks...</p></div>;
 
   return (
     <div className="student-view" style={{ textAlign: 'center', padding: '20px' }}>

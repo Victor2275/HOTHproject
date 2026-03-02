@@ -117,6 +117,13 @@ export default function App() {
   const [emotions, setEmotions] = useState([]);
   const [studentsData, setStudentsData] = useState([]);
   const [isSessionActive, setIsSessionActive] = useState(false);
+  const [restartCounter, setRestartCounter] = useState(0);
+
+  // States for student task progress - hoisted to App so they persist across tab switches
+  const [studentCurrentIndex, setStudentCurrentIndex] = useState(0);
+  const [studentIsFinished, setStudentIsFinished] = useState(false);
+  const [studentTimeLeft, setStudentTimeLeft] = useState(null);
+  const [studentActiveTaskId, setStudentActiveTaskId] = useState(null);
 
   // FIREBASE REAL-TIME LISTENERS
   useEffect(() => {
@@ -143,7 +150,11 @@ export default function App() {
 
     const sessionUnsub = onSnapshot(doc(db, "session", "status"), (docSnap) => {
       if (docSnap.exists()) {
-        setIsSessionActive(docSnap.data().isActive);
+        const data = docSnap.data();
+        setIsSessionActive(data.isActive);
+        if (data.restartCounter) {
+          setRestartCounter(data.restartCounter);
+        }
       }
     });
 
@@ -162,6 +173,11 @@ export default function App() {
   const handleLogout = () => {
     setRole(null);
     setStudentName('');
+    // Clear student progress when logging out
+    setStudentCurrentIndex(0);
+    setStudentIsFinished(false);
+    setStudentTimeLeft(null);
+    setStudentActiveTaskId(null);
   };
 
   return (
@@ -221,6 +237,15 @@ export default function App() {
                     studentName={studentName}
                     setStudentName={setStudentName}
                     isSessionActive={isSessionActive}
+                    restartCounter={restartCounter}
+                    currentIndex={studentCurrentIndex}
+                    setCurrentIndex={setStudentCurrentIndex}
+                    isFinished={studentIsFinished}
+                    setIsFinished={setStudentIsFinished}
+                    timeLeft={studentTimeLeft}
+                    setTimeLeft={setStudentTimeLeft}
+                    activeTaskId={studentActiveTaskId}
+                    setActiveTaskId={setStudentActiveTaskId}
                   />
                 )
               }

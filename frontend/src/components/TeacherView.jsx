@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { db } from '../firebase';
-import { collection, addDoc, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 
 export default function TeacherView({ tasks, studentsData, isSessionActive, forest, emotions }) {
   const [taskInput, setTaskInput] = useState('');
@@ -9,12 +9,23 @@ export default function TeacherView({ tasks, studentsData, isSessionActive, fore
   const [showSteps, setShowSteps] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiSuggestedSteps, setAiSuggestedSteps] = useState('');
+  const [editingTaskId, setEditingTaskId] = useState(null); // Tracks the task being edited
 
   const handleToggleSession = async () => {
     try {
-      await setDoc(doc(db, "session", "status"), { isActive: !isSessionActive });
+      await setDoc(doc(db, "session", "status"), { isActive: !isSessionActive }, { merge: true });
     } catch (error) {
       console.error("Error toggling session status:", error);
+    }
+  };
+
+  const handleRestartStudents = async () => {
+    if (window.confirm("Are you sure you want to restart all students' progress to the first task?")) {
+      try {
+        await setDoc(doc(db, "session", "status"), { restartCounter: Date.now() }, { merge: true });
+      } catch (error) {
+        console.error("Error restarting student tasks:", error);
+      }
     }
   };
 
@@ -47,7 +58,6 @@ export default function TeacherView({ tasks, studentsData, isSessionActive, fore
     setAiSuggestedSteps('');
 
     try {
-      // Pull the API key from the .env file
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       
       if (!apiKey) {
@@ -63,7 +73,6 @@ export default function TeacherView({ tasks, studentsData, isSessionActive, fore
       Do not include the numbers themselves.
       Task: "${taskInput}"`;
 
-      // Call the Gemini API directly using the updated gemini-2.5-flash model
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -78,7 +87,6 @@ export default function TeacherView({ tasks, studentsData, isSessionActive, fore
         console.error("API Error:", data.error);
         setAiSuggestedSteps("Sorry, the AI encountered an error. Please check your browser console for details.");
       } else {
-        // Extract the generated text from the response
         const aiText = data.candidates[0].content.parts[0].text;
         setAiSuggestedSteps(aiText.trim());
       }
@@ -96,17 +104,36 @@ export default function TeacherView({ tasks, studentsData, isSessionActive, fore
     setAiSuggestedSteps('');
   };
 
+  const handleEditTask = (task) => {
+    setEditingTaskId(task.id);
+    setTaskInput(task.title);
+    setStepsInput(task.steps ? task.steps.join('\n') : '');
+    setTimeLimitMinutes(task.timeLimitSeconds ? Math.round(task.timeLimitSeconds / 60) : 1);
+    setShowSteps(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleAddTask = async () => {
     if (!taskInput) return;
     const steps = stepsInput.split('\n').map(s => s.trim()).filter(Boolean);
-    const newTask = {
-      title: taskInput, steps, correctAnswer: '', timeLimitSeconds: Number(timeLimitMinutes) * 60, createdAt: serverTimestamp()
-    };
+    
     try {
-      await addDoc(collection(db, "tasks"), newTask);
+      if (editingTaskId) {
+        await updateDoc(doc(db, "tasks", editingTaskId), {
+          title: taskInput,
+          steps,
+          timeLimitSeconds: Number(timeLimitMinutes) * 60
+        });
+        setEditingTaskId(null);
+      } else {
+        const newTask = {
+          title: taskInput, steps, correctAnswer: '', timeLimitSeconds: Number(timeLimitMinutes) * 60, createdAt: serverTimestamp()
+        };
+        await addDoc(collection(db, "tasks"), newTask);
+      }
       setTaskInput(''); setStepsInput(''); setShowSteps(false); setAiSuggestedSteps('');
     } catch (error) {
-      console.error("Error adding task:", error);
+      console.error("Error saving task:", error);
     }
   };
 
@@ -137,9 +164,20 @@ export default function TeacherView({ tasks, studentsData, isSessionActive, fore
           >
             {isSessionActive ? "⏸ Pause Tasks for Students" : "▶️ Start Tasks for Students"}
           </button>
+
+          <button 
+            onClick={handleRestartStudents}
+            style={{ 
+              padding: '10px 20px', fontSize: '1rem', 
+              background: '#38bdf8', color: '#0f172a',
+              fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', width: '100%', marginTop: '10px' 
+            }}
+          >
+            🔄 Restart Students' Progress
+          </button>
         </div>
 
-        <h2>👩‍🏫 Create Tasks</h2>
+        <h2>👩‍🏫 {editingTaskId ? 'Edit Task' : 'Create Tasks'}</h2>
         <div className="input-group">
           <label>Enter a task or question for the student:</label>
           <textarea
@@ -197,10 +235,24 @@ export default function TeacherView({ tasks, studentsData, isSessionActive, fore
           <button
             onClick={() => (!showSteps ? setShowSteps(true) : handleAddTask())}
             disabled={!taskInput.trim()}
-            style={{ marginTop: '15px', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', width: '100%' }}
+            style={{ marginTop: '15px', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', width: '100%', background: editingTaskId ? '#eab308' : '#e5e7eb', color: editingTaskId ? 'white' : 'black', border: 'none', fontWeight: 'bold' }}
           >
-            {showSteps ? 'Confirm and Post Task' : 'Add Steps'}
+            {showSteps ? (editingTaskId ? 'Update Task' : 'Confirm and Post Task') : 'Add Steps'}
           </button>
+          
+          {editingTaskId && (
+            <button
+              onClick={() => {
+                setEditingTaskId(null);
+                setTaskInput('');
+                setStepsInput('');
+                setShowSteps(false);
+              }}
+              style={{ marginTop: '10px', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', width: '100%', background: '#64748b', color: 'white', border: 'none' }}
+            >
+              Cancel Edit
+            </button>
+          )}
         </div>
 
         <h3 style={{ marginTop: '30px' }}>Current Tasks:</h3>
@@ -221,12 +273,20 @@ export default function TeacherView({ tasks, studentsData, isSessionActive, fore
                     ⏱ Time Allotted: {Math.round(task.timeLimitSeconds/60)} min
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDeleteTask(task.id)}
-                  style={{ background: '#ef4444', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer', marginLeft: '10px' }}
-                >
-                  Remove
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: '10px' }}>
+                  <button
+                    onClick={() => handleEditTask(task)}
+                    style={{ background: '#eab308', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteTask(task.id)}
+                    style={{ background: '#ef4444', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
             </li>
           ))}
@@ -264,4 +324,4 @@ export default function TeacherView({ tasks, studentsData, isSessionActive, fore
 
     </div>
   );
-} //hi
+}
