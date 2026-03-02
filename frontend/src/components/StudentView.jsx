@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import confetti from 'canvas-confetti'; // 🎊 Confetti effect!
+import confetti from 'canvas-confetti';
+import { db } from '../firebase'; // Ensure correct path
+import { doc, updateDoc, increment } from 'firebase/firestore'; // For updating points/stars
 
 // 8 simple math tasks for testing
 const SAMPLE_TASKS = [
@@ -13,9 +15,8 @@ const SAMPLE_TASKS = [
   { id: 'sample8', title: 'Solve 5 - 2', steps: ['Hold up 5 fingers', 'Put 2 fingers down', 'Count the standing fingers'], timeLimitSeconds: 60, correctAnswer: '3' }
 ];
 
-export default function StudentView({ tasks, points }) {
-  // COMBINE the sample tasks with any tasks the teacher sends.
-  // This guarantees you always have the 8 questions to cycle through!
+export default function StudentView({ tasks, points, setPoints }) {
+  // Combine static samples with real-time Firebase tasks
   const displayTasks = [...SAMPLE_TASKS, ...(tasks || [])];
 
   const [remaining, setRemaining] = useState({});
@@ -23,7 +24,7 @@ export default function StudentView({ tasks, points }) {
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState(null);
 
-  // Initialize remaining times for tasks
+  // Initialize and update remaining times when displayTasks change
   useEffect(() => {
     setRemaining(prev => {
       const next = { ...prev };
@@ -36,7 +37,7 @@ export default function StudentView({ tasks, points }) {
     });
   }, [displayTasks]);
 
-  // Global interval to decrement timers every second
+  // Global interval to decrement timers
   useEffect(() => {
     const id = setInterval(() => {
       setRemaining(prev => {
@@ -56,7 +57,7 @@ export default function StudentView({ tasks, points }) {
 
   const currentTask = displayTasks[currentIndex];
 
-  // Automatically move to the next question when the timer hits zero
+  // Auto-skip when timer hits zero
   useEffect(() => {
     if (currentTask && remaining[currentTask.id] === 0) {
       handleNext();
@@ -77,7 +78,7 @@ export default function StudentView({ tasks, points }) {
     if (currentIndex < displayTasks.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
-      setCurrentIndex(0); // Loop back to the start
+      setCurrentIndex(0); // Loop back to start
     }
   }
 
@@ -94,19 +95,21 @@ export default function StudentView({ tasks, points }) {
     if (!currentTask.correctAnswer) {
       triggerConfetti();
       setFeedback({ text: "Good job!", color: '#4ade80' });
+      setPoints(prev => prev + 10);
       setTimeout(() => handleNext(), 1500);
       return;
     }
 
     if (answer.trim().toLowerCase() === currentTask.correctAnswer.toLowerCase()) {
-      triggerConfetti(); // 🎊 Pop!
+      triggerConfetti();
       setFeedback({ text: "That's Correct!", color: '#4ade80' });
+      setPoints(prev => prev + 10); // Award stars locally
       setTimeout(() => {
         handleNext();
       }, 1500);
     } else {
       setFeedback({ text: "Try again!", color: '#f87171' });
-      setAnswer(''); // Clear for re-input
+      setAnswer('');
       setTimeout(() => setFeedback(null), 2000);
     }
   }
@@ -141,7 +144,7 @@ export default function StudentView({ tasks, points }) {
                 className="step-box"
                 style={{
                   fontSize: '1.1rem', margin: '8px 0', padding: '12px', background: '#1e293b',
-                  borderRadius: '8px', borderLeft: '5px solid #38bdf8'
+                  borderRadius: '8px', borderLeft: '5px solid #38bdf8', color: '#fff'
                 }}
               >
                 <strong>Step {index + 1}:</strong> {step}

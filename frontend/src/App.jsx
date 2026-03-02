@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
+import { db } from './firebase'; // Ensure you have created this file
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import TeacherView from './components/TeacherView';
 import StudentView from './components/StudentView';
 import RewardView from './components/RewardView';
@@ -36,11 +38,23 @@ function SessionSetup({ setRole }) {
 export default function App() {
   const [role, setRole] = useState(null);
   const [points, setPoints] = useState(1000);
-  const [tasks, setTasks] = useState([
-    { id: 1, title: "Basic Math", steps: ["Read the numbers", "Add them together", "Write the answer"], timeLimitSeconds: 180 }
-  ]);
+  const [tasks, setTasks] = useState([]); // Now synced with Firestore
   const [forest, setForest] = useState([]);
   const [emotions, setEmotions] = useState([]);
+
+  // Real-time listener for tasks
+  useEffect(() => {
+    const q = query(collection(db, "tasks"), orderBy("createdAt", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const taskData = snapshot.docs.map(doc => ({
+        id: doc.id, // Firestore document ID
+        ...doc.data()
+      }));
+      setTasks(taskData);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <Router>
@@ -77,7 +91,7 @@ export default function App() {
               path="/teacher"
               element={
                 role === 'teacher'
-                  ? <TeacherView tasks={tasks} setTasks={setTasks} />
+                  ? <TeacherView tasks={tasks} />
                   : <Navigate to="/" replace />
               }
             />
@@ -101,7 +115,6 @@ export default function App() {
 
             <Route
               path="/emotion"
-              // Pass tasks here so the student can select them!
               element={<EmotionView emotions={emotions} setEmotions={setEmotions} tasks={tasks} />}
             />
           </Routes>
