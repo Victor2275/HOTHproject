@@ -139,7 +139,9 @@ const EmotionView = ({ emotions, tasks = [], studentsData, studentName, role }) 
       {/* 1. TASK SELECTION (Only for Students) */}
       {role !== 'teacher' && (
         <div style={{ width: '100%', maxWidth: '600px', marginBottom: '30px' }}>
-          <h2>1. Select a Task</h2>
+          <div style={{display: 'flex', justifyContent: 'center'}}>
+            <h2>1. Select a Task</h2>
+          </div>
           {tasks.length === 0 ? <p>No tasks assigned yet.</p> : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
               {tasks.map((task, idx) => {
