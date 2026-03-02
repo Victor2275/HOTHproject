@@ -96,11 +96,11 @@ export default function RewardView({ studentsData, forest, studentName, role }) 
         <p>Please select a student above to view their forest.</p>
       ) : (
         <>
-          <h2>🌳 {role === 'teacher' ? `${activeStudentName}'s` : 'Your'} Magical Forest 🌳</h2>
+          <h2>🌳 {role === 'teacher' ? `${activeStudentName}'s` : 'My'} Reward Forest 🌳</h2>
           <p>Stars: <strong>{activePoints} ⭐</strong></p>
           
           {role !== 'teacher' && (
-            <button onClick={() => plantTree('pine')} style={{ marginBottom: '10px' }}>Buy Pine (5 ⭐)</button>
+            <button onClick={() => plantTree('pine')} style={{ marginBottom: '10px' }}>Buy Seed (5 ⭐)</button>
           )}
 
           <div style={{ display: 'flex', justifyContent: 'center' }}>
