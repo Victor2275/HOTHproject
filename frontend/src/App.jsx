@@ -11,11 +11,27 @@ import './App.css';
 
 function SessionSetup({ setRole }) {
   const navigate = useNavigate();
-  const studentJoinUrl = `${window.location.origin}/student`;
+  const studentJoinUrl = `${window.location.origin}`;
 
-  const startSession = () => {
-    setRole('teacher');
-    navigate('/teacher');
+  // State for the teacher password prompt
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  const handleTeacherLogin = () => {
+    if (passwordInput === 'teacher') {
+      setRole('teacher');
+      navigate('/teacher');
+    } else {
+      setPasswordError('Incorrect password. Please try again.');
+      setPasswordInput('');
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleTeacherLogin();
+    }
   };
 
   const joinAsStudent = () => {
@@ -31,20 +47,58 @@ function SessionSetup({ setRole }) {
       </div>
       <p style={{ marginTop: '20px' }}>Students: Scan to join the session!</p>
       
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '30px' }}>
-        <button
-          onClick={startSession}
-          style={{ padding: '15px 30px', fontSize: '1.2rem', cursor: 'pointer', background: '#997541', color: 'white', border: 'none', borderRadius: '8px' }}
-        >
-          Enter Teacher Dashboard →
-        </button>
-        <button
-          onClick={joinAsStudent}
-          style={{ padding: '15px 30px', fontSize: '1.2rem', cursor: 'pointer', background: '#38bdf8', color: '#0f172a', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}
-        >
-          Join as Student →
-        </button>
-      </div>
+      {!showPasswordPrompt ? (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '30px' }}>
+          <button
+            onClick={() => setShowPasswordPrompt(true)}
+            style={{ padding: '15px 30px', fontSize: '1.2rem', cursor: 'pointer', background: '#997541', color: 'white', border: 'none', borderRadius: '8px' }}
+          >
+            Enter Teacher Dashboard →
+          </button>
+          <button
+            onClick={joinAsStudent}
+            style={{ padding: '15px 30px', fontSize: '1.2rem', cursor: 'pointer', background: '#38bdf8', color: '#0f172a', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}
+          >
+            Join as Student →
+          </button>
+        </div>
+      ) : (
+        <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h3>🔒 Teacher Login</h3>
+          <input 
+            type="password" 
+            value={passwordInput}
+            onChange={(e) => {
+              setPasswordInput(e.target.value);
+              setPasswordError(''); // Clear error on type
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder="Enter Teacher Password"
+            style={{ padding: '10px', fontSize: '1.1rem', borderRadius: '5px', width: '250px', textAlign: 'center' }}
+            autoFocus
+          />
+          {passwordError && <p style={{ color: '#ef4444', marginTop: '10px' }}>{passwordError}</p>}
+          
+          <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+            <button
+              onClick={handleTeacherLogin}
+              style={{ padding: '10px 20px', fontSize: '1.1rem', cursor: 'pointer', background: '#4ade80', color: '#0f172a', border: 'none', borderRadius: '5px', fontWeight: 'bold' }}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => {
+                setShowPasswordPrompt(false);
+                setPasswordInput('');
+                setPasswordError('');
+              }}
+              style={{ padding: '10px 20px', fontSize: '1.1rem', cursor: 'pointer', background: '#64748b', color: 'white', border: 'none', borderRadius: '5px' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
