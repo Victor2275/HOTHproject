@@ -148,7 +148,13 @@ export default function RewardView({ points, setPoints, forest, setForest }) {
                 <span style={{ fontSize: treeData.size, display: 'inline-block' }}>
                   {treeData.graphic}
                 </span>
-                <div style={{ fontSize: '0.6rem', background: 'white', borderRadius: '5px', padding: '0 4px', fontWeight: 'bold' }}>
+                <div style={{
+                    fontSize: '0.6rem',
+                    background: '#ddb889',   // changed from white to #ddb889
+                    borderRadius: '5px',
+                    padding: '0 4px',
+                    fontWeight: 'bold'
+                    }}>
                   Lvl {tree.level}
                 </div>
               </motion.div>

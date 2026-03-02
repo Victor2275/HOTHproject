@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // <-- Added useEffect here
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import TeacherView from './components/TeacherView';
@@ -25,7 +25,7 @@ function SessionSetup({ setRole }) {
       <p style={{ marginTop: '20px' }}>Students: Scan to join the session!</p>
       <button
         onClick={startSession}
-        style={{ padding: '15px 30px', fontSize: '1.2rem', marginTop: '30px' }}
+        style={{ padding: '15px 30px', fontSize: '1.2rem', marginTop: '30px', cursor: 'pointer' }}
       >
         Enter Teacher Dashboard →
       </button>
@@ -35,7 +35,18 @@ function SessionSetup({ setRole }) {
 
 export default function App() {
   const [role, setRole] = useState(null);
-  const [points, setPoints] = useState(1000);
+  
+  // Load points from local storage, or start at 0 if no saved points exist
+  const [points, setPoints] = useState(() => {
+    const savedStars = localStorage.getItem('taskableStars');
+    return savedStars !== null ? parseInt(savedStars, 10) : 0; // Starts at 0 instead of 1000
+  });
+
+  // Automatically save points to local storage whenever they change
+  useEffect(() => {
+    localStorage.setItem('taskableStars', points.toString());
+  }, [points]);
+
   const [tasks, setTasks] = useState([
     { id: 1, title: "Basic Math", steps: ["Read the numbers", "Add them together", "Write the answer"], timeLimitSeconds: 180 }
   ]);
@@ -45,30 +56,27 @@ export default function App() {
   return (
     <Router>
       <div className="app-container">
-{role === 'teacher' && (
-  <header>
-    <h1>🌟 Learning Journey (Teacher)</h1>
-    <nav>
-      <Link to="/teacher"><button>Dashboard</button></Link>
-      <Link to="/reward"><button>Forest View</button></Link>
-      <Link to="/emotion"><button>Emotion Logs</button></Link>
-    </nav>
-    <div className="points-display">⭐ Class Stars: {points}</div>
-  </header>
-)}
-
-{/* Student Header - FIXED LOGIC */}
-{role !== 'teacher' && role !== null && window.location.pathname !== '/' && (
-  <header>
-    <h1>🎒 My Learning</h1>
-    <nav>
-      <Link to="/student"><button>My Tasks</button></Link>
-      <Link to="/reward"><button>My Forest</button></Link>
-      <Link to="/emotion"><button>My Mood</button></Link>
-    </nav>
-    <div className="points-display">⭐ My Stars: {points}</div>
-  </header>
-)}
+        {role === 'teacher' && (
+          <header>
+            <h1>🌟 TaskAble (Teacher View)</h1>
+            <nav>
+              <a href="/teacher">
+                <button style={{ marginRight: '10px', marginLeft: '10px' }}>
+                  Student Tasks
+                </button>
+              </a>
+              <a href="/reward">
+                <button style={{ marginRight: '10px'}}>
+                  Student Reward
+                </button>
+              </a>
+              <a href="/emotion">
+                <button>Student Emotion Log</button>
+              </a>
+            </nav>
+            <div className="points-display">⭐ Class Stars: {points}</div>
+          </header>
+        )}
 
         {role !== 'teacher' && window.location.pathname !== '/' && (
           <header>
@@ -126,4 +134,3 @@ export default function App() {
     </Router>
   );
 }
-
