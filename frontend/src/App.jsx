@@ -45,24 +45,30 @@ export default function App() {
   return (
     <Router>
       <div className="app-container">
-        {role === 'teacher' && (
-          <header>
-            <h1>🌟 TaskAble (Teacher View)</h1>
-            <nav>
-        <a href="/teacher">
-            <button style={{ marginRight: '10px', marginLeft: '10px' }}>
-                Student Tasks
-            </button>
-            </a>
-           <a href="/reward">
-            <button style={{ marginRight: '10px'}}>
-                Student Reward </button>
-                </a>
-              <a href="/emotion"><button>Student Emotion Log</button></a>
-            </nav>
-            <div className="points-display">⭐ Class Stars: {points}</div>
-          </header>
-        )}
+{role === 'teacher' && (
+  <header>
+    <h1>🌟 Learning Journey (Teacher)</h1>
+    <nav>
+      <Link to="/teacher"><button>Dashboard</button></Link>
+      <Link to="/reward"><button>Forest View</button></Link>
+      <Link to="/emotion"><button>Emotion Logs</button></Link>
+    </nav>
+    <div className="points-display">⭐ Class Stars: {points}</div>
+  </header>
+)}
+
+{/* Student Header - FIXED LOGIC */}
+{role !== 'teacher' && role !== null && window.location.pathname !== '/' && (
+  <header>
+    <h1>🎒 My Learning</h1>
+    <nav>
+      <Link to="/student"><button>My Tasks</button></Link>
+      <Link to="/reward"><button>My Forest</button></Link>
+      <Link to="/emotion"><button>My Mood</button></Link>
+    </nav>
+    <div className="points-display">⭐ My Stars: {points}</div>
+  </header>
+)}
 
         {role !== 'teacher' && window.location.pathname !== '/' && (
           <header>

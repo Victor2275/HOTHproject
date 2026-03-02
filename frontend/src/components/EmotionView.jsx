@@ -6,12 +6,12 @@ const EmotionView = ({ emotions, setEmotions, tasks = [] }) => {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
 
   const emotionData = [
-    { name: 'Happy', color: '#FFD700', angle: 0 },
-    { name: 'Surprised', color: '#FF69B4', angle: 60 },
-    { name: 'Angry', color: '#FF4500', angle: 120 },
-    { name: 'Sad', color: '#4169E1', angle: 180 },
-    { name: 'Confused', color: '#9370DB', angle: 240 },
-    { name: 'Bored', color: '#A9A9A9', angle: 300 },
+    { name: 'Happy 😄', color: '#FFD700', angle: 0 },
+    { name: 'Surprised 😲', color: '#FF69B4', angle: 60 },
+    { name: 'Angry 😡', color: '#FF4500', angle: 120 },
+    { name: 'Sad 😞', color: '#4169E1', angle: 180 },
+    { name: 'Confused 🤔', color: '#9370DB', angle: 240 },
+    { name: 'Bored 😐', color: '#A9A9A9', angle: 300 },
   ];
 
   const handleEmotionClick = (emotion) => {
@@ -100,7 +100,7 @@ const EmotionView = ({ emotions, setEmotions, tasks = [] }) => {
       <div className="emotion-wheel-container" style={{ opacity: selectedTaskId ? 1 : 0.4, transition: 'opacity 0.3s' }}>
         <svg viewBox="0 0 400 400" className="emotion-wheel">
           {emotionData.map((emotion) => {
-            const radius = 150;
+            const radius = 125;
             const angle = (emotion.angle * Math.PI) / 180;
             const x = 200 + radius * Math.cos(angle);
             const y = 200 + radius * Math.sin(angle);

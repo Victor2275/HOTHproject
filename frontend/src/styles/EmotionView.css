@@ -1,8 +1,9 @@
 .emotion-view {
   display: flex;
-  height: 100vh;
+  min-height: 100vh; /* ensures at least full viewport height */
   width: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #78935c;
+  flex-direction: column; /* optional if you want vertical stacking */
 }
 
 /* Emotion Wheel Container */
@@ -11,7 +12,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 20px;
   min-width: 500px;
 }
 
@@ -54,7 +55,7 @@
 
 .sidebar-header {
   padding: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ddb889;
   color: white;
   display: flex;
   justify-content: space-between;
