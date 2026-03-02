@@ -45,7 +45,6 @@ function SessionSetup({ setRole }) {
       <div style={{ background: 'white', padding: '20px', display: 'inline-block', borderRadius: '10px' }}>
         <QRCodeSVG value={studentJoinUrl} size={256} />
       </div>
-      <p style={{ marginTop: '20px' }}>Students: Scan to join the session!</p>
       
       {!showPasswordPrompt ? (
         <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '30px' }}>
@@ -57,7 +56,7 @@ function SessionSetup({ setRole }) {
           </button>
           <button
             onClick={joinAsStudent}
-            style={{ padding: '15px 30px', fontSize: '1.2rem', cursor: 'pointer', background: '#38bdf8', color: '#0f172a', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}
+            style={{ padding: '15px 30px', fontSize: '1.2rem', cursor: 'pointer', background: '#b3cba7', color: '#0f172a', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}
           >
             Join as Student →
           </button>
