@@ -56,10 +56,11 @@ export default function TeacherView({ tasks, studentsData, isSessionActive, fore
         return;
       }
 
-      const prompt = `You are a helpful teaching assistant for elementary school students. 
-      Break down the following task into 3 to 5 simple, kid-friendly steps. 
+      const prompt = `You are a helpful teaching assistant for special education school students. 
+      Break down the following task into 3 to 5 very simple, kid-friendly steps. Please keep the steps between 3-15 words each. 
       Keep the steps encouraging and easy to read.
       Return ONLY the numbered steps, each on a new line. 
+      Do not include the numbers themselves.
       Task: "${taskInput}"`;
 
       // Call the Gemini API directly using the updated gemini-2.5-flash model
