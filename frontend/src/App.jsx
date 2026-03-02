@@ -66,11 +66,14 @@ export default function App() {
 
         {role !== 'teacher' && window.location.pathname !== '/' && (
           <header>
-            <h1>🎒 My Learning</h1>
+            <h1 style={{ textAlign: 'center' }}>🎒TaskAble</h1>
             <nav>
-              <a href="/student"><button>My Tasks</button></a>
-              <a href="/reward"><button>My Reward Chart</button></a>
-              <a href="/emotion"><button>My Mood</button></a>
+              <a href="/student">
+              <button style={{ marginRight: '10px', marginLeft: '10px' }}>My Tasks</button></a>
+              <a href="/reward">
+              <button style={{ marginRight: '10px'}}>My Reward Chart</button></a>
+              <a href="/emotion">
+              <button style={{ marginRight: '10px'}}>My Mood</button></a>
             </nav>
             <div className="points-display">⭐ My Stars: {points}</div>
           </header>

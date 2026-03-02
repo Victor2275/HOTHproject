@@ -5,7 +5,6 @@ import { collection, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/fi
 export default function TeacherView({ tasks }) {
   const [taskInput, setTaskInput] = useState('');
   const [stepsInput, setStepsInput] = useState('');
-  const [correctAnswer, setCorrectAnswer] = useState('');
   const [timeLimitMinutes, setTimeLimitMinutes] = useState(1);
   const [showSteps, setShowSteps] = useState(false);
   
@@ -18,7 +17,7 @@ export default function TeacherView({ tasks }) {
     setAiSuggestedSteps('');
     
     try {
-      // Logic from original server-side simulation
+      // Mocking the AI response logic
       await new Promise(resolve => setTimeout(resolve, 1500));
       const mockResponse = `1. Look at the numbers together.\n2. Count on your fingers slowly.\n3. Say the answer out loud.\n4. Write the answer down carefully.`;
       setAiSuggestedSteps(mockResponse);
@@ -45,9 +44,9 @@ export default function TeacherView({ tasks }) {
     const newTask = {
       title: taskInput,
       steps,
-      correctAnswer: correctAnswer.trim(),
+      correctAnswer: '', // No longer collected from UI, defaults to empty
       timeLimitSeconds: Number(timeLimitMinutes) * 60,
-      createdAt: serverTimestamp() // Added for consistent ordering
+      createdAt: serverTimestamp()
     };
 
     try {
@@ -55,7 +54,6 @@ export default function TeacherView({ tasks }) {
       // Reset form
       setTaskInput('');
       setStepsInput('');
-      setCorrectAnswer('');
       setShowSteps(false);
       setAiSuggestedSteps('');
     } catch (error) {
@@ -88,20 +86,10 @@ export default function TeacherView({ tasks }) {
 
         {showSteps && (
           <>
-            <label style={{ marginTop: '10px', display: 'block' }}>Expected Answer:</label>
-            <input
-              type="text"
-              value={correctAnswer}
-              onChange={(e) => setCorrectAnswer(e.target.value)}
-              placeholder="e.g., 8"
-              style={{ width: '100%', maxWidth: '400px', marginTop: '4px', padding: '5px' }}
-            />
-            <br />
-
             <button
               onClick={handleAIGenerate}
               disabled={isGenerating || !taskInput.trim()}
-              style={{ background: '#997541', color: 'white', marginBottom: '10px', marginTop: '10px' }}
+              style={{ background: '#997541', color: 'white', marginBottom: '10px', marginTop: '10px', padding: '10px', borderRadius: '5px', cursor: 'pointer', border: 'none' }}
             >
               {isGenerating ? "🤖 Thinking..." : "✨ Use AI to help break down steps!"}
             </button>
@@ -114,17 +102,18 @@ export default function TeacherView({ tasks }) {
                   rows="4"
                   style={{ width: '100%', color: '#1d4ed8', fontWeight: 'bold', backgroundColor: '#eff6ff' }}
                 />
-                <button onClick={handleAcceptAI} style={{ background: '#3b82f6', color: 'white', marginTop: '5px', width: '100%' }}>
+                <button onClick={handleAcceptAI} style={{ background: '#3b82f6', color: 'white', marginTop: '5px', width: '100%', padding: '8px', borderRadius: '5px', border: 'none', cursor: 'pointer' }}>
                   ✅ Accept These Steps
                 </button>
               </div>
             )}
 
+            <label style={{ marginTop: '10px', display: 'block' }}>Breakdown steps (one per line):</label>
             <textarea
               value={stepsInput}
               onChange={(e) => setStepsInput(e.target.value)}
               placeholder="Enter each step on a new line."
-              rows="3"
+              rows="4"
               style={{ width: '100%', maxWidth: '400px', marginTop: '4px' }}
             />
             <br />
@@ -137,34 +126,34 @@ export default function TeacherView({ tasks }) {
           min="1"
           value={timeLimitMinutes}
           onChange={(e) => setTimeLimitMinutes(e.target.value)}
-          style={{ width: '100px', marginTop: '6px' }}
+          style={{ width: '100px', marginTop: '6px', padding: '5px' }}
         />
         <br />
 
         <button
           onClick={() => (!showSteps ? setShowSteps(true) : handleAddTask())}
           disabled={!taskInput.trim()}
-          style={{ marginTop: '10px' }}
+          style={{ marginTop: '15px', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer' }}
         >
-          {showSteps ? 'Confirm Task' : 'Add Steps'}
+          {showSteps ? 'Confirm and Post Task' : 'Add Steps'}
         </button>
       </div>
 
-      <h3>Current Tasks:</h3>
+      <h3 style={{ marginTop: '30px' }}>Current Tasks:</h3>
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {tasks.map(task => (
-          <li key={task.id} style={{ marginBottom: '15px', padding: '10px', border: '1px solid #334155', borderRadius: '8px' }}>
+          <li key={task.id} style={{ marginBottom: '15px', padding: '15px', border: '1px solid #334155', borderRadius: '8px', backgroundColor: '#1e293b' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <strong>{task.title}</strong>
-              <button 
+              <strong style={{ color: 'white' }}>{task.title}</strong>
+              <button
                 onClick={() => handleDeleteTask(task.id)}
                 style={{ background: '#ef4444', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
               >
                 Remove
               </button>
             </div>
-            <div style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
-              Time: {Math.round(task.timeLimitSeconds/60)} min | Answer: {task.correctAnswer || 'N/A'}
+            <div style={{ fontSize: '0.9rem', color: '#94a3b8', marginTop: '5px' }}>
+              Time Allotted: {Math.round(task.timeLimitSeconds/60)} min
             </div>
           </li>
         ))}
