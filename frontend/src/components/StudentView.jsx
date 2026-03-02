@@ -183,7 +183,7 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
 
   return (
     <div className="student-view" style={{ textAlign: 'center', padding: '20px' }}>
-      <div style={{ marginBottom: '20px', fontSize: '1.2rem', color: '#38bdf8' }}>
+      <div style={{ marginBottom: '20px', fontSize: '1.2rem', color: '#ffffff' }}>
         👤 {studentName} | ⭐ Stars: {points}
       </div>
 
