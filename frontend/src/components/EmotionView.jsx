@@ -175,7 +175,7 @@ const EmotionView = ({ emotions, tasks = [], studentsData, studentName, role }) 
       {/* 2. EMOTION WHEEL (Only for Students) */}
       {role !== 'teacher' && (
         <>
-          <h2>2. How did this make you feel?</h2>
+          <h2>2. How did this make me feel?</h2>
           <div className="emotion-wheel-container" style={{ opacity: selectedTaskId ? 1 : 0.4, transition: 'opacity 0.3s' }}>
             <svg viewBox="0 0 400 400" className="emotion-wheel">
               {/* Visual Wheel Elements */}

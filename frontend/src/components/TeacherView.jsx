@@ -124,13 +124,13 @@ export default function TeacherView({ tasks, studentsData, isSessionActive, fore
       {/* Left side: Task Creation & Controls */}
       <div style={{ flex: '1', minWidth: '300px', maxWidth: '500px' }}>
         
-        <div style={{ marginBottom: '20px', padding: '20px', background: '#1e293b', borderRadius: '10px', textAlign: 'center', border: `2px solid ${isSessionActive ? '#4ade80' : '#ef4444'}` }}>
+        <div style={{ marginBottom: '20px', padding: '20px', background: '#1e293b', borderRadius: '10px', textAlign: 'center', border: `2px solid #ffffff` }}>
           <h3 style={{ color: 'white', marginTop: 0 }}>Sync Controls</h3>
           <button 
             onClick={handleToggleSession}
             style={{ 
               padding: '15px 20px', fontSize: '1.2rem', 
-              background: isSessionActive ? '#ef4444' : '#4ade80', 
+              background: isSessionActive ? '#ef4444' : '#b3cba7', 
               color: isSessionActive ? 'white' : '#0f172a',
               fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', width: '100%' 
             }}
