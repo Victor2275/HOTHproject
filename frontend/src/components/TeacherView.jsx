@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { db } from '../firebase';
 import { collection, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 
@@ -44,7 +44,7 @@ export default function TeacherView({ tasks }) {
     const newTask = {
       title: taskInput,
       steps,
-      correctAnswer: '', // No longer collected from UI, defaults to empty
+      correctAnswer: '', 
       timeLimitSeconds: Number(timeLimitMinutes) * 60,
       createdAt: serverTimestamp()
     };

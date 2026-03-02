@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'; // <-- Added useEffect here
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
+import { db } from './firebase'; 
+import { collection, onSnapshot, query } from 'firebase/firestore'; 
 import TeacherView from './components/TeacherView';
 import StudentView from './components/StudentView';
 import RewardView from './components/RewardView';
@@ -39,7 +41,7 @@ export default function App() {
   // Load points from local storage, or start at 0 if no saved points exist
   const [points, setPoints] = useState(() => {
     const savedStars = localStorage.getItem('taskableStars');
-    return savedStars !== null ? parseInt(savedStars, 10) : 0; // Starts at 0 instead of 1000
+    return savedStars !== null ? parseInt(savedStars, 10) : 0; 
   });
 
   // Automatically save points to local storage whenever they change
@@ -47,11 +49,30 @@ export default function App() {
     localStorage.setItem('taskableStars', points.toString());
   }, [points]);
 
-  const [tasks, setTasks] = useState([
-    { id: 1, title: "Basic Math", steps: ["Read the numbers", "Add them together", "Write the answer"], timeLimitSeconds: 180 }
-  ]);
+  const [tasks, setTasks] = useState([]); // Will be populated from Firebase
   const [forest, setForest] = useState([]);
   const [emotions, setEmotions] = useState([]);
+
+  // FIREBASE REAL-TIME LISTENER
+  useEffect(() => {
+    const tasksCollection = collection(db, "tasks");
+    const q = query(tasksCollection);
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const tasksData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      // Sort tasks by creation time locally to avoid needing complex Firestore indexes
+      tasksData.sort((a, b) => {
+        if (!a.createdAt || !b.createdAt) return 0;
+        return a.createdAt.seconds - b.createdAt.seconds;
+      });
+      setTasks(tasksData);
+    });
+
+    return () => unsubscribe(); // Cleanup listener when app closes
+  }, []);
 
   return (
     <Router>
@@ -60,19 +81,19 @@ export default function App() {
           <header>
             <h1>🌟 TaskAble (Teacher View)</h1>
             <nav>
-              <a href="/teacher">
+              <Link to="/teacher">
                 <button style={{ marginRight: '10px', marginLeft: '10px' }}>
                   Student Tasks
                 </button>
-              </a>
-              <a href="/reward">
+              </Link>
+              <Link to="/reward">
                 <button style={{ marginRight: '10px'}}>
                   Student Reward
                 </button>
-              </a>
-              <a href="/emotion">
+              </Link>
+              <Link to="/emotion">
                 <button>Student Emotion Log</button>
-              </a>
+              </Link>
             </nav>
             <div className="points-display">⭐ Class Stars: {points}</div>
           </header>
@@ -82,12 +103,15 @@ export default function App() {
           <header>
             <h1 style={{ textAlign: 'center' }}>🎒TaskAble</h1>
             <nav>
-              <a href="/student">
-              <button style={{ marginRight: '10px', marginLeft: '10px' }}>My Tasks</button></a>
-              <a href="/reward">
-              <button style={{ marginRight: '10px'}}>My Reward Chart</button></a>
-              <a href="/emotion">
-              <button style={{ marginRight: '10px'}}>My Mood</button></a>
+              <Link to="/student">
+                <button style={{ marginRight: '10px', marginLeft: '10px' }}>My Tasks</button>
+              </Link>
+              <Link to="/reward">
+                <button style={{ marginRight: '10px'}}>My Reward Chart</button>
+              </Link>
+              <Link to="/emotion">
+                <button style={{ marginRight: '10px'}}>My Mood</button>
+              </Link>
             </nav>
             <div className="points-display">⭐ My Stars: {points}</div>
           </header>
@@ -125,7 +149,6 @@ export default function App() {
 
             <Route
               path="/emotion"
-              // Pass tasks here so the student can select them!
               element={<EmotionView emotions={emotions} setEmotions={setEmotions} tasks={tasks} />}
             />
           </Routes>

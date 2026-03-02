@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { db } from '../firebase';
-import { doc, updateDoc, increment } from 'firebase/firestore';
 
 const SAMPLE_TASKS = [
   { id: 'sample1', title: 'Solve 5 + 3', steps: ['Hold up 5 fingers', 'Hold up 3 fingers', 'Count them all'], timeLimitSeconds: 60 },
@@ -15,6 +13,7 @@ const SAMPLE_TASKS = [
 ];
 
 export default function StudentView({ tasks, points, setPoints }) {
+  // Merges the default sample tasks with the ones dynamically pulled from Firebase
   const displayTasks = [...SAMPLE_TASKS, ...(tasks || [])];
 
   const [currentIndex, setCurrentIndex] = useState(0);
