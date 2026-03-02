@@ -71,8 +71,8 @@ const EmotionView = ({ emotions, setEmotions, tasks = [] }) => {
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
                   style={{
                     padding: '15px 20px',
-                    border: isSelected ? '3px solid white' : '2px solid #38bdf8',
-                    backgroundColor: isSelected ? '#0284c7' : '#0f172a',
+                    border: isSelected ? '3px solid white' : '2px solid white',
+                    backgroundColor: isSelected ? '#997541' : '#78935c',
                     borderRadius: '12px',
                     cursor: 'pointer',
                     color: 'white',
