@@ -126,7 +126,7 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
         <h2>⏳ Please Wait</h2>
         <p style={{ fontSize: '1.2rem', marginTop: '20px' }}>Your teacher hasn't started the tasks yet.</p>
         <div className="spinner" style={{ marginTop: '30px', fontSize: '3rem' }}>🧘‍♂️</div>
-        <p style={{ color: '#94a3b8', marginTop: '20px' }}>Get ready! Tasks will appear here as soon as the session begins.</p>
+        <p style={{ color: '#ffffff', marginTop: '20px' }}>Get ready! Tasks will appear here as soon as the session begins.</p>
       </div>
     );
   }
@@ -183,7 +183,7 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
 
   return (
     <div className="student-view" style={{ textAlign: 'center', padding: '20px' }}>
-      <div style={{ marginBottom: '20px', fontSize: '1.2rem', color: '#38bdf8' }}>
+      <div style={{ marginBottom: '20px', fontSize: '1.2rem', color: '#ffffff' }}>
         👤 {studentName} | ⭐ Stars: {points}
       </div>
 
@@ -222,7 +222,7 @@ export default function StudentView({ tasks, studentsData, studentName, setStude
           </div>
         </div>
       </div>
-      <p style={{ marginTop: '25px', fontStyle: 'italic', color: '#94a3b8' }}>Question {currentIndex + 1} of {displayTasks.length}</p>
+      <p style={{ marginTop: '25px', fontStyle: 'italic', color: '#ffffff' }}>Question {currentIndex + 1} of {displayTasks.length}</p>
     </div>
   );
 }
