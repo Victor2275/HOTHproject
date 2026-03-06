@@ -8,7 +8,7 @@ Markdown
 
 TaskAble is a web-based educational platform designed to help autistic students manage daily classroom activities. By providing a structured environment with clear instructions and positive reinforcement, TaskAble aims to create a calmer, more engaging, and supportive classroom experience for both students and educators.
 
-## 🌟 Features
+## Features
 
 TaskAble is built with two distinct, real-time synchronized interfaces:
 
@@ -24,13 +24,13 @@ TaskAble is built with two distinct, real-time synchronized interfaces:
 * **Reward System:** Students earn stars for completing tasks, which can be spent to plant trees in their persistent virtual "Reward Forest."
 * **Emotional Logging:** Students can log their current emotions, providing valuable feedback to the teacher.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 * **Frontend:** React
-* **Backend & Database:** Firebase Firestore (Real-time NoSQL database)
+* **Backend & Database:** Firebase Firestore
 * **AI Integration:** Gemini API (Task breakdown and simplification)
 
-* ## 🚀 Getting Started
+* ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
