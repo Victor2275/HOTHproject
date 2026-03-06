@@ -1,9 +1,7 @@
 Link: https://taskable-bice.vercel.app/
 Password for teacher: teacher
 
-Here is a draft for your README.md file, incorporating the features and tech stack of TaskAble.
 
-Markdown
 # TaskAble
 
 TaskAble is a web-based educational platform designed to help autistic students manage daily classroom activities. By providing a structured environment with clear instructions and positive reinforcement, TaskAble aims to create a calmer, more engaging, and supportive classroom experience for both students and educators.
